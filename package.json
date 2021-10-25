@@ -4,7 +4,7 @@
   "scripts": {
     "typegen": "hydra-typegen typegen manifest.yml",
     "codegen": "hydra-cli codegen",
-    "build": "tsc",
+    "build": "rm -rf lib && tsc",
     "db:create": "hydra-cli db:create",
     "db:drop": "hydra-cli db:drop",
     "db:create-migration": "hydra-cli db:create-migration",
@@ -16,16 +16,14 @@
     "query-node:start": "node ./lib/generated/server.js"
   },
   "dependencies": {
+    "@polkadot/api": "^6.5.1",
     "@polkadot/types": "^6.5.1",
     "@subsquid/hydra-common": "5.0.0-alpha.5",
     "@subsquid/hydra-processor": "5.0.0-alpha.5",
     "@subsquid/openreader": "^0.2.0",
     "axios": "^0.23.0",
-    "class-validator": "^0.13.1",
     "inflected": "^2.1.0",
-    "type-graphql": "^1.1.1",
-    "typeorm": "0.2.38",
-    "polkApi": "npm:@polkadot/api@^6.4.2"
+    "typeorm": "0.2.38"
   },
   "devDependencies": {
     "@subsquid/hydra-cli": "5.0.0-alpha.5",

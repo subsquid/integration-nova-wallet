@@ -1,13 +1,12 @@
-
-import { PROVIDER , INDEXER } from "../../../constants"
+import { PROVIDER , INDEXER } from "../../constants"
 import axios, {AxiosRequestConfig} from "axios"
-const{ ApiPromise } = require('polkApi')
+import { ApiPromise } from "@polkadot/api"
 
-let api: any;
+let api: ApiPromise | undefined
 
-export const apiService =  async () =>   {  
-    if(api) return api;
-    api = await ApiPromise.create({ PROVIDER })
+export const apiService =  async () => {
+    if (api) return api;
+    api = await ApiPromise.create({ provider: PROVIDER })
     return api
 }
 

@@ -79,7 +79,7 @@
 //         block,
 //         extrinsic,
 //       })
-//     await updateAccumulatedReward(event, true)
+//     await updateAccumulatedReward(event,store, true)
 //     let rewardEventId = eventId(event)
 //     try {
 //         // let errorOccursOnEvent = await ErrorEvent.get(rewardEventId)
@@ -104,7 +104,7 @@
 //         block,
 //         extrinsic,
 //       })
-//         await updateAccumulatedReward(event, true)
+//         await updateAccumulatedReward(event,store, true)
 //     } catch (error) {
 //         console.error(`Got error on reward event: ${rewardEventId}: ${error}`)
 //         let saveError =  await getOrCreate(
@@ -130,7 +130,7 @@
 //         return;
 //     }
 
-//     let payoutCallsArgs = rewardEvent.block.block.extrinsics
+//     let payoutCallsArgs = block.extrinsics
 //         .map(extrinsic => determinePayoutCallsArgs(extrinsic.method, extrinsic.signer.toString()))
 //         .filter(args => args.length != 0)
 //         .flat()
@@ -258,7 +258,7 @@
 //         block,
 //         extrinsic,
 //       })
-//     await updateAccumulatedReward(event, false)
+//     await updateAccumulatedReward(event,store, false)
 //     // let slashEventId = eventId(slashEvent)
 //     // try {
 //     //     let errorOccursOnEvent = await ErrorEvent.get(slashEventId)
@@ -311,16 +311,16 @@
 //     const initialValidator: string = ""
 
 //     await buildRewardEvents(
-//         slashEvent.block,
-//         slashEvent.extrinsic,
-//         slashEvent.event.method,
-//         slashEvent.event.section,
+//         block,
+//         extrinsic,
+//         event.method,
+//         event.section || '',
 //         {},
 //         initialValidator,
 //         (currentValidator, eventAccount) => {
 //             return validatorsSet.has(eventAccount) ? eventAccount : currentValidator
 //         },
-//         (validator, eventIdx, stash, amount) => {
+//         (validator, eventIdx, stash, amount):any => {
 
 //             return {
 //                 eventIdx: eventIdx,
@@ -392,8 +392,8 @@
 //         StakeChange,
 //         eventId(event)
 //       );
-//         newAccumulatedReward.amount = new BN(0)
-//         const newAmount = (amount as Balance)
-//         newAccumulatedReward.amount = newAccumulatedReward.amount.add(isReward ? newAmount : newAmount.neg())
+//         newAccumulatedReward.amount = 0n
+//         const newAmount = amount
+//         newAccumulatedReward.amount = newAccumulatedReward.amount + (isReward ? newAmount : newAmount * -1n)
 //         await store.save(newAccumulatedReward)
 // }
