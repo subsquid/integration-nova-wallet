@@ -1,16 +1,52 @@
 version: '4.0'
-description: Test manifest
+description: Fearless Subsquid manifest
 
 typegen:
   outDir: src/types
   events:
     - balances.Transfer
+    - balances.Deposits
+    - treasury.Deposits
+    - staking.Reward
+    - staking.StakingElection
+    - staking.Slash
+    - staking.StakersElected
+    - staking.Rewarded
+    - staking.Slashed
+    - staking.Bonded
+    - staking.Unbonded
+  calls:
+    # - timestamp.set
+    # - balances.transfer_keep_alive
 
 mappings:
   mappingsModule: lib/mappings
   eventHandlers:
     - event: balances.Transfer
-      handler: balancesTransfer
+      handler: handleTransfer
+    # - event: balances.Deposits
+    #   handler: handleBalanceDeposits
+    # - event: treasury.Deposits
+    #   handler: handleTreasuryDeposits
+    # - event: staking.Reward
+    #   handler: handleReward
+    # - event: staking.StakingElection
+    #   handler: handleStakingElection
+    # - event: staking.Slash
+    #   handler: handleSlash
+    - event: staking.StakersElected
+      handler: handleStakersElected
+    # - event: staking.Rewarded
+    #   handler: handleRewarded
+    # - event: staking.Slashed
+    #   handler: handleSlashed
+    - event: staking.Bonded
+      handler: handleBonded
+    - event: staking.Unbonded
+      handler: handleUnbonded
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:
+  # range: '[8948000, ]' fpr era
+  range: '[9795779, ]'
+

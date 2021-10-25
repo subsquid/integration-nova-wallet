@@ -1,14 +1,88 @@
-type Account @entity {
-    "Account address"
-    id: ID!
-    wallet: String!
-    balance: BigInt!
-    historicalBalances: [HistoricalBalance!] @derivedFrom(field: "account")
+# Fearless Schema
+
+type Transfer {
+  amount: String!
+  to: String!
+  from: String!
+  fee: String!
+  eventIdx: String!
+  success: Boolean!
 }
 
-type HistoricalBalance @entity {
-    id: ID!
-    account: Account!
-    balance: BigInt!
-    timestamp: DateTime!
+type Reward {
+  eventIdx: Int!
+  amount: String!
+  isReward: Boolean!,
+  era: Int,
+  stash: String,
+  validator: String
 }
+
+type AccumulatedReward @entity {
+  id: ID! #address
+  amount: BigInt!
+}
+
+type Extrinsic {
+  hash: String!
+  module: String!
+  call: String!
+  fee: String!
+  success: Boolean!
+}
+
+type HistoryElement @entity {
+  id: ID!
+  blockNumber: Int!
+  extrinsicIdx: String,
+  extrinsicHash: String
+  timestamp: BigInt! 
+  address: String! 
+  reward: Reward
+  extrinsic: Extrinsic
+  transfer: Transfer
+}
+
+type EraValidatorInfo @entity {
+  id: ID!
+  address: String! 
+  era: Int! 
+  total: BigInt!
+  own: BigInt!
+  others: [IndividualExposure]!
+}
+
+type IndividualExposure {
+  who: String!
+  value: String!
+}
+
+#enum StakeChangeType {
+#  bonded
+#  unbonded
+#  slashed
+#  rewarded
+#}
+
+type StakeChange @entity {
+  id: ID!
+  blockNumber: Int!
+  extrinsicHash: String
+  eventIdx: String!
+  timestamp: BigInt! 
+  address: String! 
+  amount: BigInt!
+  accumulatedAmount: BigInt!
+  type: String!
+}
+
+type AccumulatedStake @entity {
+  id: ID!
+  amount: BigInt!
+}
+
+type ErrorEvent @entity {
+  id: ID!
+  description: String!
+}
+
