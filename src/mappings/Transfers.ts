@@ -61,7 +61,7 @@ async function populateTransfer(
   element.blockNumber = blockNumber(event);
   if (extrinsic !== undefined) {
     element.extrinsicHash = extrinsic.hash;
-    element.extrinsicIdx = "" //extrinsic.id; //recheck
+    element.extrinsicIdx = extrinsic.id;
   }
   const [from, to, value] = new Balances.TransferEvent(event).params
   element.transfer = new Transfer ({
