@@ -45,7 +45,7 @@ export async function handleUnbonded({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void>{
-  const [stash, amount] = new Staking.BondedEvent(event).params
+  const [stash, amount] = new Staking.UnbondedEvent(event).params
 
     let address = stash.toString()
     let amountBalance = (amount as Balance).toBigInt() * -1n // need to subtract
