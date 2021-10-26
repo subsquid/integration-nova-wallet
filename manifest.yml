@@ -5,8 +5,8 @@ typegen:
   outDir: src/types
   events:
     - balances.Transfer
-    - balances.Deposits
-    - treasury.Deposits
+    - balances.Deposit
+    - treasury.Deposit
     - staking.Reward
     - staking.StakingElection
     - staking.Slash
@@ -24,10 +24,10 @@ mappings:
   eventHandlers:
     - event: balances.Transfer
       handler: handleTransfer
-    # - event: balances.Deposits
-    #   handler: handleBalanceDeposits
-    # - event: treasury.Deposits
-    #   handler: handleTreasuryDeposits
+    - event: balances.Deposit
+      handler: handleBalanceDeposit
+    # - event: treasury.Deposit
+    #   handler: handleTreasuryDeposit
     # - event: staking.Reward
     #   handler: handleReward
     # - event: staking.StakingElection

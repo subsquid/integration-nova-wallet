@@ -570,10 +570,10 @@
   resolved "https://registry.yarnpkg.com/@subsquid/graphiql-console/-/graphiql-console-0.2.0.tgz#53edcc562342735e800361bb3892c54388b2e717"
   integrity sha512-Wh2Oxi9JkK79Y728yDEeY7JelcY1cGiQTbzVIRMFLT2tjkkoQ69goAGXdh9QmM/ANAVrHQkBUNJOLd5oAg//oQ==
 
-"@subsquid/hydra-cli@5.0.0-alpha.5":
-  version "5.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-cli/-/hydra-cli-5.0.0-alpha.5.tgz#4487ca7bd5e7f10ce87a644990406fb3139747c9"
-  integrity sha512-XBPTVtJ2YpDoOwjZ9cY4DhpP+MDGqmYHjzW1r7JuFHErcWBxO6wy2dEtaZHxxvhPePxGFqIumxoJvS7J1EVuqg==
+"@subsquid/hydra-cli@5.0.0-alpha.6":
+  version "5.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-cli/-/hydra-cli-5.0.0-alpha.6.tgz#2eecf64c16439f04d9d99a6f102f8d42ab044616"
+  integrity sha512-qoZWoRz6Yye0MfzqdwyuKkJEQ8ypLaxsJEYAzUElYlj4ifM30aGzknypSuovm+XNB9b919WPbBQy01Z379N7AA==
   dependencies:
     "@inquirer/input" "^0.0.13-alpha.0"
     "@inquirer/password" "^0.0.12-alpha.0"
@@ -593,20 +593,20 @@
     simple-git "^2.44.0"
     tslib "^2.3.1"
 
-"@subsquid/hydra-common@5.0.0-alpha.5", "@subsquid/hydra-common@^5.0.0-alpha.5":
-  version "5.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-common/-/hydra-common-5.0.0-alpha.5.tgz#8cd5796dc5b3995a1b90a9fe74eeb1013e03d841"
-  integrity sha512-Vuz930AxWhA3+AYEAyt0mPJjsAKnHDjz3Ix/habZbE/8zuomtNYzjlR5j70uDE448BiRxen8w0pk4pz5qSiJow==
+"@subsquid/hydra-common@5.0.0-alpha.6", "@subsquid/hydra-common@^5.0.0-alpha.6":
+  version "5.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-common/-/hydra-common-5.0.0-alpha.6.tgz#0298cbd7b1af4323ca8d2260ea035d8b46eb5831"
+  integrity sha512-8bYwz4Ai+dUNSMq2EXEyOCEMN7JgyNevmeG0GQHeiJQ0Cy0EYPP/bOmmO/SBJANyXcx5Y0ZmdsFMUeTZzbYdAQ==
 
-"@subsquid/hydra-processor@5.0.0-alpha.5":
-  version "5.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-processor/-/hydra-processor-5.0.0-alpha.5.tgz#804ade4366e8f3aa4c50ed906a161a8db35084c6"
-  integrity sha512-Z8EknZtW9Xq34OA4q54eR5l54A1RhLyAByI3OdXxGGeUP/EY4pMxqxbgMEhnK4f9UpzyktzkTu3gfBYyyNL6/w==
+"@subsquid/hydra-processor@5.0.0-alpha.6":
+  version "5.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-processor/-/hydra-processor-5.0.0-alpha.6.tgz#d4718b3d9072ff5feb763374f2672baed5460ad9"
+  integrity sha512-8UkP2XJ4pJg2LfhAPNig5I6aewNruHJ7Ru08utQMfxa7dzuyhKUshSX1Zj9L0UyZ/DEipsv4Ij1mOZaJCBjOFw==
   dependencies:
     "@oclif/command" "^1.8.0"
     "@oclif/config" "^1"
     "@oclif/errors" "^1.3.5"
-    "@subsquid/hydra-common" "^5.0.0-alpha.5"
+    "@subsquid/hydra-common" "^5.0.0-alpha.6"
     chalk "^4.1.2"
     delay "~5.0.0"
     dotenv "^10.0.0"
@@ -626,10 +626,10 @@
     yaml "^1.10.2"
     yaml-validator "^3.0.1"
 
-"@subsquid/hydra-typegen@5.0.0-alpha.5":
-  version "5.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-typegen/-/hydra-typegen-5.0.0-alpha.5.tgz#07ff56dd2cc8da426af922d1c398e23fe79013e0"
-  integrity sha512-LEvI0XH4JtX4ug35L9S0jcdvizm0/Dhz075/C6ruS6kkptiqM72PjvMpBHh0A4H8fivQfQdePFeUVHbNEVqB7Q==
+"@subsquid/hydra-typegen@5.0.0-alpha.6":
+  version "5.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-typegen/-/hydra-typegen-5.0.0-alpha.6.tgz#83f62c15aaba9946d5f179f61266c5048c4a9f8c"
+  integrity sha512-1JHeboXLpGdbKW/13DCuBEacx+TsDnPQL7sEu7K6Iy1yRF5p2YYQiV7Pq1xHV6NzVUsGJnp0CebkqmVcQnQ8tA==
   dependencies:
     "@oclif/command" "^1.8.0"
     "@oclif/config" "^1"

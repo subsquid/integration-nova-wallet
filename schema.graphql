@@ -9,6 +9,11 @@ type Transfer {
   success: Boolean!
 }
 
+type FeesPaid {
+  extrinisicId : String!
+  fee: BigInt!
+}
+
 type Reward {
   eventIdx: Int!
   amount: String!

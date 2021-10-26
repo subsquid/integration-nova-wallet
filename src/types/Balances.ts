@@ -15,4 +15,15 @@ export namespace Balances {
     }
   }
 
+  /**
+   * Some amount was deposited (e.g. for transaction fees). \[who, deposit\]
+   */
+  export class DepositEvent {
+    constructor(private event: SubstrateEvent) {}
+
+    get params(): [AccountId32, u128] {
+      return [create('AccountId32', this.event.params[0].value), create('u128', this.event.params[1].value)]
+    }
+  }
+
 }
