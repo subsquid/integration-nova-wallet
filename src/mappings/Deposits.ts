@@ -32,25 +32,18 @@ export async function handleBalanceDeposit({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-  const [who, fee] = new Balances.DepositEvent(event).params
-  let feesPaid = await store.get(FeesPaid, {
-    where: { extrinisicIdx: extrinsic?.id  },
-  })
-
-  if (feesPaid == null) {
-    feesPaid = new FeesPaid()
-  }
   if(extrinsic == undefined){
     return
   }
-  if(feesPaid.transfer == undefined){
-    let transfer = await store.get(Transfer, {
-     where: { extrinisicIdx: extrinsic?.id  },
-   })
-   if(transfer == null) return
-   feesPaid.transfer = transfer
-   }
- feesPaid.extrinisicIdx = extrinsic.id
+  const [who, fee] = new Balances.DepositEvent(event).params
+  let feesPaid = await store.get(FeesPaid, {
+    where: { id: extrinsic?.id  },
+  })
+
+  if (feesPaid == null) {
+    return
+  }
+ 
  feesPaid.fee = feesPaid.fee || 0n + fee.toBigInt()
  feesPaid.blockProducerAddress = who.toString();
 
@@ -64,24 +57,19 @@ export async function handleTreasuryDeposit({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-  const [fee] = new Treasury.DepositEvent(event).params
-  let feesPaid = await store.get(FeesPaid, {
-    where: { extrinisicIdx: extrinsic?.id  },
-  })
-
-  if (feesPaid == null) {
-    feesPaid = new FeesPaid()
-  }
+  
   if(extrinsic == undefined){
     return
   }
-  if(feesPaid.transfer == undefined){
-    let transfer = await store.get(Transfer, {
-     where: { extrinisicIdx: extrinsic?.id  },
-   })
-   if(transfer == null) return
-   feesPaid.transfer = transfer
-   }
+  const [fee] = new Treasury.DepositEvent(event).params
+  let feesPaid = await store.get(FeesPaid, {
+    where: { id: extrinsic?.id  },
+  })
+
+  if (feesPaid == null) {
+    return
+  }
+  
  feesPaid.fee =feesPaid.fee || 0n  +  fee.toBigInt()
  await store.save(feesPaid)
 }

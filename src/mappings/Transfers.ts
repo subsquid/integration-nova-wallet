@@ -76,9 +76,11 @@ async function populateTransfer(
     return
   }
   let feesPaid = new FeesPaid()
-if (extrinsic?.id)feesPaid.extrinisicIdx= extrinsic.id
+  feesPaid.fee = 0n;
+  feesPaid.blockProducerAddress = ''
+if (extrinsic?.id)feesPaid.id= extrinsic.id
 else return
-
+await store.save(feesPaid);
   transfer.amount = value.toString();
   transfer.from=from.toString();
   transfer.to=to.toString();
@@ -87,8 +89,7 @@ else return
   transfer.eventIdx=event.id;
   transfer.success=true;
   transfer.id=event.id
-  await store.save(transfer)
+  await store.save(transfer);
   element.transfer = transfer
-
   await store.save(element);
 }

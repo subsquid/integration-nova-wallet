@@ -1,12 +1,20 @@
-// import {AccumulatedReward, ErrorEvent, HistoryElement, Reward} from '../types';
-// import {SubstrateBlock, SubstrateEvent, SubstrateExtrinsic} from "@subql/types";
+// import BN from 'bn.js'
+// import {AccumulatedReward, ErrorEvent, HistoryElement, Reward, StakeChange} from '../generated/model';
+// import {
+//     SubstrateBlock,
+//     SubstrateEvent,
+//     SubstrateExtrinsic,
+//     EventContext,
+//     StoreContext,
+//     DatabaseManager
+// } from "@subsquid/hydra-common";
 // import {
 //     callsFromBatch,
 //     eventIdFromBlockAndIdx,
 //     isBatch,
 //     timestamp,
 //     eventId,
-//     isProxy,
+//     isProxy, 
 //     callFromProxy
 // } from "./helpers/common";
 // import {CallBase} from "@polkadot/types/types/calls";
@@ -14,7 +22,10 @@
 // import {EraIndex, RewardDestination} from "@polkadot/types/interfaces/staking"
 // import {Balance} from "@polkadot/types/interfaces";
 // import {handleRewardRestakeForAnalytics, handleSlashForAnalytics} from "./StakeChanged"
-// import {cachedRewardDestination, cachedController} from "./Cache"
+// import {cachedRewardDestination} from "./helpers/Cache"
+// import { getOrCreate } from './helpers/helpers';
+// import { apiService } from './helpers/api';
+// // import {cachedRewardDestination, cachedController} from "./helpers/Cache"
 
 // function isPayoutStakers(call: CallBase<AnyTuple>): boolean {
 //     return call.method == "payoutStakers"
@@ -36,25 +47,90 @@
 //     return [sender, (eraRaw as EraIndex).toNumber()]
 // }
 
-// export async function handleRewarded(rewardEvent: SubstrateEvent): Promise<void> {
-//     await handleReward(rewardEvent)
+// export async function handleRewarded({
+//     store,
+//     event,
+//     block,
+//     extrinsic,
+//   }: EventContext & StoreContext): Promise<void> {
+//     await handleReward({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
 // }
 
-// export async function handleReward(rewardEvent: SubstrateEvent): Promise<void> {
-//     await handleRewardRestakeForAnalytics(rewardEvent)
-//     await handleRewardForTxHistory(rewardEvent)
-//     await updateAccumulatedReward(rewardEvent, true)
+// export async function handleReward({
+//     store,
+//     event,
+//     block,
+//     extrinsic,
+//   }: EventContext & StoreContext): Promise<void> {
+//     await handleRewardRestakeForAnalytics({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
+//     await handleRewardForTxHistory({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
+//     await updateAccumulatedReward(event,store, true)
+//     let rewardEventId = eventId(event)
+//     try {
+//         // let errorOccursOnEvent = await ErrorEvent.get(rewardEventId)
+//         let errorOccursOnEvent =  await store.find(ErrorEvent, // recheck
+//             {
+//               where: {id:rewardEventId}
+//             });
+//         if (errorOccursOnEvent.length !== 0) {
+//             console.info(`Skip rewardEvent: ${rewardEventId}`)
+//             return;
+//         }
+
+//         await handleRewardRestakeForAnalytics({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
+//         await handleRewardForTxHistory({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
+//         await updateAccumulatedReward(event,store, true)
+//     } catch (error) {
+//         console.error(`Got error on reward event: ${rewardEventId}: ${error}`)
+//         let saveError =  await getOrCreate(
+//             store,
+//             ErrorEvent,
+//             rewardEventId
+//           );
+//         saveError.description = JSON.stringify(error)
+//         await store.save(saveError)
+//     }
 // }
 
-// async function handleRewardForTxHistory(rewardEvent: SubstrateEvent): Promise<void> {
-//     let element = await HistoryElement.get(eventId(rewardEvent))
-
+// async function handleRewardForTxHistory({
+//     store,
+//     event,
+//     block,
+//     extrinsic,
+//   }: EventContext & StoreContext): Promise<void> {
+//     // let element = await HistoryElement.get(eventId(event)) // recheck
+//     let element = undefined
 //     if (element !== undefined) {
 //         // already processed reward previously
 //         return;
 //     }
 
-//     let payoutCallsArgs = rewardEvent.block.block.extrinsics
+//     let payoutCallsArgs = block.extrinsics
 //         .map(extrinsic => determinePayoutCallsArgs(extrinsic.method, extrinsic.signer.toString()))
 //         .filter(args => args.length != 0)
 //         .flat()
@@ -150,18 +226,67 @@
 //     }
 // }
 
-// export async function handleSlashed(slashEvent: SubstrateEvent): Promise<void> {
-//     await handleSlash(slashEvent)
+// export async function handleSlashed({
+//     store,
+//     event,
+//     block,
+//     extrinsic,
+//   }: EventContext & StoreContext): Promise<void> {
+//     await handleSlash({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
 // }
 
-// export async function handleSlash(slashEvent: SubstrateEvent): Promise<void> {
-//     await handleSlashForAnalytics(slashEvent)
-//     await handleSlashForTxHistory(slashEvent)
-//     await updateAccumulatedReward(slashEvent, false)
+// export async function handleSlash({
+//     store,
+//     event,
+//     block,
+//     extrinsic,
+//   }: EventContext & StoreContext): Promise<void> {
+//     await handleSlashForAnalytics({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
+//     await handleSlashForTxHistory({
+//         store,
+//         event,
+//         block,
+//         extrinsic,
+//       })
+//     await updateAccumulatedReward(event,store, false)
+//     // let slashEventId = eventId(slashEvent)
+//     // try {
+//     //     let errorOccursOnEvent = await ErrorEvent.get(slashEventId)
+//     //     if (errorOccursOnEvent !== undefined) {
+//     //         logger.info(`Skip slashEvent: ${slashEventId}`)
+//     //         return;
+//     //     }
+
+//     //     await handleSlashForAnalytics(slashEvent)
+//     //     await handleSlashForTxHistory(slashEvent)
+//     //     await updateAccumulatedReward(slashEvent, false)
+//     // } catch (error) {
+//     //     logger.error(`Got error on slash event: ${slashEventId}: ${error.toString()}`)
+//     //     let saveError = new ErrorEvent(slashEventId)
+//     //     saveError.description = error.toString()
+//     //     await saveError.save()
+//     // }
 // }
 
-// async function handleSlashForTxHistory(slashEvent: SubstrateEvent): Promise<void> {
-//     let element = await HistoryElement.get(eventId(slashEvent))
+// async function handleSlashForTxHistory({
+//     store,
+//     event,
+//     block,
+//     extrinsic,
+//   }: EventContext & StoreContext): Promise<void> {
+//     // let element = await HistoryElement.get(eventId(slashEvent)) // recheck
+//     let element = undefined
+//     const api = await apiService()
 
 //     if (element !== undefined) {
 //         // already processed reward previously
@@ -176,7 +301,7 @@
 //     : currentEra.toNumber() - slashDeferDuration.toNumber()
 
 //     const eraStakersInSlashEra = await api.query.staking.erasStakersClipped.entries(slashEra);
-//     const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]) => {
+//     const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]:any) => {
 //         let [, validatorId] = key.args
 
 //         return validatorId.toString()
@@ -186,16 +311,16 @@
 //     const initialValidator: string = ""
 
 //     await buildRewardEvents(
-//         slashEvent.block,
-//         slashEvent.extrinsic,
-//         slashEvent.event.method,
-//         slashEvent.event.section,
+//         block,
+//         extrinsic,
+//         event.method,
+//         event.section || '',
 //         {},
 //         initialValidator,
 //         (currentValidator, eventAccount) => {
 //             return validatorsSet.has(eventAccount) ? eventAccount : currentValidator
 //         },
-//         (validator, eventIdx, stash, amount) => {
+//         (validator, eventIdx, stash, amount):any => {
 
 //             return {
 //                 eventIdx: eventIdx,
@@ -219,7 +344,7 @@
 //     produceNewAccumulator: (currentAccumulator: A, eventAccount: string) => A,
 //     produceReward: (currentAccumulator: A, eventIdx: number, stash: string, amount: string) => Reward
 // ) {
-//     let blockNumber = block.block.header.number.toString()
+//     let blockNumber = block.height
 //     let blockTimestamp = timestamp(block)
 
 //     const [, savingPromises] = block.events.reduce<[A, Promise<void>[]]>(
@@ -257,16 +382,18 @@
 //     await Promise.allSettled(savingPromises);
 // }
 
-// async function updateAccumulatedReward(event: SubstrateEvent, isReward: boolean): Promise<void> {
+// async function updateAccumulatedReward(event: SubstrateEvent,store: DatabaseManager, isReward: boolean): Promise<void> {
 //     let {event: {data: [accountId, amount]}} = event
 //     let accountAddress = accountId.toString()
 
-//     let accumulatedReward = await AccumulatedReward.get(accountAddress);
-//     if (!accumulatedReward) {
-//         accumulatedReward = new AccumulatedReward(accountAddress);
-//         accumulatedReward.amount = BigInt(0)
-//     }
-//     const newAmount = (amount as Balance).toBigInt()
-//     accumulatedReward.amount = accumulatedReward.amount + (isReward ? newAmount : -newAmount)
-//     await accumulatedReward.save()
+//     // let accumulatedReward = await AccumulatedReward.get(accountAddress);
+//       let newAccumulatedReward = await getOrCreate(
+//         store,
+//         StakeChange,
+//         eventId(event)
+//       );
+//         newAccumulatedReward.amount = 0n
+//         const newAmount = amount
+//         newAccumulatedReward.amount = newAccumulatedReward.amount + (isReward ? newAmount : newAmount * -1n)
+//         await store.save(newAccumulatedReward)
 // }
