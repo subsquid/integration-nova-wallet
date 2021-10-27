@@ -10,25 +10,25 @@ export class Transfer {
   @PrimaryColumn_()
   id!: string
 
-  @Column_("text", {nullable: true})
-  amount!: string | undefined | null
+  @Column_("text", {nullable: false})
+  amount!: string
 
-  @Column_("text", {nullable: true})
-  to!: string | undefined | null
+  @Column_("text", {nullable: false})
+  to!: string
 
-  @Column_("text", {nullable: true})
-  from!: string | undefined | null
+  @Column_("text", {nullable: false})
+  from!: string
 
   @Index_()
-  @ManyToOne_(() => FeesPaid, {nullable: true})
-  fee!: FeesPaid | undefined | null
+  @ManyToOne_(() => FeesPaid, {nullable: false})
+  fee!: FeesPaid
 
-  @Column_("text", {nullable: true})
-  eventIdx!: string | undefined | null
+  @Column_("text", {nullable: false})
+  eventIdx!: string
 
   @Column_("text", {nullable: false})
   extrinisicIdx!: string
 
-  @Column_("bool", {nullable: true})
-  success!: boolean | undefined | null
+  @Column_("bool", {nullable: false})
+  success!: boolean
 }

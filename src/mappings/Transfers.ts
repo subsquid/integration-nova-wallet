@@ -75,12 +75,14 @@ async function populateTransfer(
     console.error(`extrinisic id undefined for transfer with event id = ${event.id}.Skipping it `)
     return
   }
-  let feesPaid = new FeesPaid()
-  feesPaid.fee = 0n;
-  feesPaid.blockProducerAddress = ''
-if (extrinsic?.id)feesPaid.id= extrinsic.id
-else return
-await store.save(feesPaid);
+  const feesPaid = await getOrCreate(
+    store,
+    FeesPaid,
+    extrinsic.id
+  ); 
+  feesPaid.fee = feesPaid.fee|| 0n;
+  feesPaid.blockProducerAddress = feesPaid.blockProducerAddress || ''
+  await store.save(feesPaid);
   transfer.amount = value.toString();
   transfer.from=from.toString();
   transfer.to=to.toString();
