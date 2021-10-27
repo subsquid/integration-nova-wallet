@@ -17,12 +17,14 @@ typegen:
     - staking.Unbonded
   calls:
     # - timestamp.set
-    # - balances.transfer_keep_alive
+    - balances.transfer_keep_alive
 
 mappings:
   mappingsModule: lib/mappings
   eventHandlers:
     - event: balances.Transfer
+      handler: handleTransfer
+    - event: balances.transfer_keep_alive
       handler: handleTransfer
     - event: balances.Deposit
       handler: handleBalanceDeposit
@@ -30,16 +32,16 @@ mappings:
       handler: handleTreasuryDeposit
     # - event: staking.Reward
     #   handler: handleReward
-    # - event: staking.StakingElection
-    #   handler: handleStakingElection
-    # - event: staking.Slash
-    #   handler: handleSlash
-    - event: staking.StakersElected
-      handler: handleStakersElected
     # - event: staking.Rewarded
     #   handler: handleRewarded
+    # - event: staking.Slash
+    #   handler: handleSlash
     # - event: staking.Slashed
     #   handler: handleSlashed
+    - event : staking.StakingElection
+      handler: handleNewEra
+    - event: staking.StakersElected
+      handler: handleStakersElected
     - event: staking.Bonded
       handler: handleBonded
     - event: staking.Unbonded
