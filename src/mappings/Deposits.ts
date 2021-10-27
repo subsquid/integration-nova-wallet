@@ -1,21 +1,9 @@
 import { FeesPaid, Transfer } from '../generated/model';
 import { Balances, Treasury } from '../types'
 import {
-  DatabaseManager,
   EventContext,
   StoreContext,
-  SubstrateBlock,
-  SubstrateEvent,
-  SubstrateExtrinsic,
 } from "@subsquid/hydra-common";
-import {
-  blockNumber,
-  eventId,
-  calculateFeeAsString,
-  timestamp,
-} from "./helpers/common";
-import { getOrCreate } from "./helpers/helpers";
-import { bigint } from '../generated/marshal';
 
 // Each transaction will have a transaction fee
 // the transaction fee will be distributed to
@@ -23,8 +11,6 @@ import { bigint } from '../generated/marshal';
 // back to treasury (80%). So total fees for a 
 // transaction would be Treasury Fees + 
 // block producer fee
-
-
 
 export async function handleBalanceDeposit({
   store,

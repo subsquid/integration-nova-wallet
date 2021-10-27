@@ -1,11 +1,9 @@
-import BN from 'bn.js'
 import {EventContext, StoreContext, DatabaseManager} from '@subsquid/hydra-common'
 import {AccumulatedStake, StakeChange} from '../generated/model';
 import { getOrCreate } from './helpers/helpers';
-import {blockNumber, eventId, timestamp} from "./helpers/common";
+import { eventId, timestamp} from "./helpers/common";
 import {Balance} from "@polkadot/types/interfaces";
 import { Staking } from '../types'
-import {RewardDestination} from "@polkadot/types/interfaces/staking";
 import { cachedRewardDestination } from './helpers/Cache';
 
 export async function handleBonded({

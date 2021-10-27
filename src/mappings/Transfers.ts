@@ -11,7 +11,6 @@ import {
 import {
   blockNumber,
   eventId,
-  calculateFeeAsString,
   timestamp,
 } from "./helpers/common";
 import { getOrCreate } from "./helpers/helpers";

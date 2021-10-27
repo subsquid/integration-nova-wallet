@@ -1,11 +1,11 @@
 const { MigrationInterface, QueryRunner } = require("typeorm");
 
-module.exports = class fearless1635316722221 {
-    name = 'fearless1635316722221'
+module.exports = class fearless1635317615504 {
+    name = 'fearless1635317615504'
 
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "fees_paid" ("id" character varying NOT NULL, "fee" numeric NOT NULL, "block_producer_address" text NOT NULL, CONSTRAINT "PK_0b92b5f61752bd99bc4864c114d" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "transfer" ("id" character varying NOT NULL, "amount" text, "to" text, "from" text, "event_idx" text, "extrinisic_idx" text NOT NULL, "success" boolean, "fee_id" character varying, CONSTRAINT "PK_fd9ddbdd49a17afcbe014401295" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "transfer" ("id" character varying NOT NULL, "amount" text NOT NULL, "to" text NOT NULL, "from" text NOT NULL, "event_idx" text NOT NULL, "extrinisic_idx" text NOT NULL, "success" boolean NOT NULL, "fee_id" character varying NOT NULL, CONSTRAINT "PK_fd9ddbdd49a17afcbe014401295" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_f6b9e9b86a1ce51c26cd08f596" ON "transfer" ("fee_id") `);
         await queryRunner.query(`CREATE TABLE "accumulated_reward" ("id" character varying NOT NULL, "amount" numeric NOT NULL, CONSTRAINT "PK_43a34960ffea1cfdf37fb441ed2" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "history_element" ("id" character varying NOT NULL, "block_number" integer NOT NULL, "extrinsic_idx" text, "extrinsic_hash" text, "timestamp" numeric NOT NULL, "address" text NOT NULL, "reward" jsonb, "extrinsic" jsonb, "transfer_id" character varying, CONSTRAINT "PK_b10b09ee684b794e1ca6dc2470c" PRIMARY KEY ("id"))`);
