@@ -1,6 +1,6 @@
-import { DatabaseManager, EventContext, StoreContext, SubstrateEvent,SubstrateBlock } from '@subsquid/hydra-common'
-import {blockNumber, eventId, timestamp} from "./common";
-import {Balance, AccountId} from "@polkadot/types/interfaces";
+import {  SubstrateEvent,SubstrateBlock } from '@subsquid/hydra-common'
+import {blockNumber} from "./common";
+import {AccountId} from "@polkadot/types/interfaces";
 import {RewardDestination} from "@polkadot/types/interfaces/staking";
 import { apiService , allAccounts} from '../helpers/api';
 
@@ -63,62 +63,69 @@ export async function cachedRewardDestination(
     }
 }
 
-// export async function cachedController(accountAddress: string, event: SubstrateEvent): Promise<string> {
-//     const blockId = blockNumber(event)
-//     let cachedBlock = controllersByStash[blockId]
+export async function cachedController(
+    accountAddress: string,
+    event: SubstrateEvent,
+    block :SubstrateBlock
+    ): Promise<string> {
+    const blockId = blockNumber(event)
+    let cachedBlock = controllersByStash[blockId]
+    const api = await apiService()
     
-//     if (cachedBlock !== undefined) {
-//         return cachedBlock[accountAddress]
-//     } else {
-//         controllersByStash = {}
+    if (cachedBlock !== undefined) {
+        return cachedBlock[accountAddress]
+    } else {
+        controllersByStash = {}
         
-//         let method = event.method
-//         let section = event.section
+        let method = event.method
+        let section = event.section
 
-//         const allAccountsInBlock = event.block.events
-//             .filter(blockEvent => { 
-//                 return blockEvent.event.method == method && blockEvent.event.section == section
-//             })
-//             .map(event => { 
-//                 let {event: {data: [accountId, ]}} = event
-//                 return accountId
-//             });
+        const allAccountsInBlock:any = await allAccounts(block.height, method, section || '')
 
-//         var controllerNeedAccounts: AccountId[] = []
+        // const allAccountsInBlock = block.events
+        //     .filter(blockEvent => { 
+        //         return blockEvent.event.method == method && blockEvent.event.section == section
+        //     })
+        //     .map(event => { 
+        //         let {event: {data: [accountId, ]}} = event
+        //         return accountId
+        //     });
 
-//         for (let accountId of allAccountsInBlock) {
-//             const rewardDestination = await cachedRewardDestination(accountId.toString(), event)
+        var controllerNeedAccounts: AccountId[] = []
 
-//             if (rewardDestination.isController) {
-//                 controllerNeedAccounts.push(accountId as AccountId)
-//             }
-//         }
+        for (let accountId of allAccountsInBlock) {
+            const rewardDestination = await cachedRewardDestination(accountId.toString(), event, block)
 
-//         // looks like accountAddress not related to events so just try to query controller directly
-//         if (controllerNeedAccounts.length === 0) {
-//             controllersByStash[blockId] = {}
-//             let accountId = await api.query.staking.bonded(accountAddress)
-//             return accountId.toString()
-//         }
+            if (rewardDestination.isController) {
+                controllerNeedAccounts.push(accountId as AccountId)
+            }
+        }
 
-//         const bonded = await api.query.staking.bonded.multi(controllerNeedAccounts);
-//         const controllers = bonded.map(bonded => { return bonded.toString() });
+        // looks like accountAddress not related to events so just try to query controller directly
+        if (controllerNeedAccounts.length === 0) {
+            controllersByStash[blockId] = {}
+            let accountId = await api.query.staking.bonded(accountAddress)
+            return accountId.toString()
+        }
+
+        const bonded = await api.query.staking.bonded.multi(controllerNeedAccounts);
+        const controllers = bonded.map(bonded => { return bonded.toString() });
         
-//         let bondedByAddress: {[address: string]: string} = {}
+        let bondedByAddress: {[address: string]: string} = {}
         
-//         // something went wrong, so just query for single accountAddress
-//         if (controllers.length !== controllerNeedAccounts.length) {
-//             const controller = await api.query.staking.bonded(accountAddress)
-//             let controllerAddress = controller.toString()
-//             bondedByAddress[accountAddress] = controllerAddress
-//             controllersByStash[blockId] = bondedByAddress
-//             return controllerAddress
-//         }
-//         controllerNeedAccounts.forEach((account, index) => { 
-//             let accountAddress = account.toString()
-//             bondedByAddress[accountAddress] = controllers[index]
-//         })
-//         controllersByStash[blockId] = bondedByAddress
-//         return bondedByAddress[accountAddress]
-//     }
-// }
+        // something went wrong, so just query for single accountAddress
+        if (controllers.length !== controllerNeedAccounts.length) {
+            const controller = await api.query.staking.bonded(accountAddress)
+            let controllerAddress = controller.toString()
+            bondedByAddress[accountAddress] = controllerAddress
+            controllersByStash[blockId] = bondedByAddress
+            return controllerAddress
+        }
+        controllerNeedAccounts.forEach((account, index) => { 
+            let accountAddress = account.toString()
+            bondedByAddress[accountAddress] = controllers[index]
+        })
+        controllersByStash[blockId] = bondedByAddress
+        return bondedByAddress[accountAddress]
+    }
+}
