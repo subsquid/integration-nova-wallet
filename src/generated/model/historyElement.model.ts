@@ -1,8 +1,8 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import * as marshal from "../marshal"
 import {Reward} from "./reward"
 import {Extrinsic} from "./extrinsic"
-import {Transfer} from "./transfer"
+import {Transfer} from "./transfer.model"
 
 @Entity_()
 export class HistoryElement {
@@ -34,6 +34,7 @@ export class HistoryElement {
   @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : new Extrinsic(undefined, obj)}, nullable: true})
   extrinsic!: Extrinsic | undefined | null
 
-  @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : new Transfer(undefined, obj)}, nullable: true})
+  @Index_()
+  @ManyToOne_(() => Transfer, {nullable: true})
   transfer!: Transfer | undefined | null
 }

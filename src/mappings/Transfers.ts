@@ -1,4 +1,4 @@
-import { HistoryElement, Transfer } from '../generated/model';
+import { FeesPaid, HistoryElement, Transfer } from '../generated/model';
 import { Balances } from '../types'
 import {
   DatabaseManager,
@@ -64,13 +64,31 @@ async function populateTransfer(
     element.extrinsicIdx = extrinsic.id;
   }
   const [from, to, value] = new Balances.TransferEvent(event).params
-  element.transfer = new Transfer ({
-    amount: value.toString(),
-    from: from.toString(),
-    to: to.toString(),
-    fee: calculateFeeAsString(event.extrinsic),
-    eventIdx: event.id,
-    success: true
-  });
+  let transfer = await store.get(Transfer, {
+    where: { extrinisicIdx: extrinsic?.id  },
+  })
+  if (transfer == null) {
+    transfer = new Transfer()
+  }
+
+  if(extrinsic?.id == undefined){
+    console.error(`extrinisic id undefined for transfer with event id = ${event.id}.Skipping it `)
+    return
+  }
+  let feesPaid = new FeesPaid()
+if (extrinsic?.id)feesPaid.extrinisicIdx= extrinsic.id
+else return
+
+  transfer.amount = value.toString();
+  transfer.from=from.toString();
+  transfer.to=to.toString();
+  transfer.fee=feesPaid;
+  transfer.extrinisicIdx=extrinsic?.id;
+  transfer.eventIdx=event.id;
+  transfer.success=true;
+  transfer.id=event.id
+  await store.save(transfer)
+  element.transfer = transfer
+
   await store.save(element);
 }

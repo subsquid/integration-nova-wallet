@@ -26,8 +26,8 @@ mappings:
       handler: handleTransfer
     - event: balances.Deposit
       handler: handleBalanceDeposit
-    # - event: treasury.Deposit
-    #   handler: handleTreasuryDeposit
+    - event: treasury.Deposit
+      handler: handleTreasuryDeposit
     # - event: staking.Reward
     #   handler: handleReward
     # - event: staking.StakingElection

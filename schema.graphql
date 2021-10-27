@@ -1,18 +1,22 @@
 # Fearless Schema
 
-type Transfer {
-  amount: String!
-  to: String!
-  from: String!
-  fee: String!
-  eventIdx: String!
-  success: Boolean!
+type FeesPaid @entity {
+  extrinisicIdx: String! @unique
+  fee: BigInt!
+  blockProducerAddress: String!
+  transfer: Transfer! @unique  
 }
 
-type FeesPaid {
-  extrinisicId : String!
-  fee: BigInt!
+type Transfer @entity{
+  amount: String
+  to: String
+  from: String
+  fee: FeesPaid @derivedFrom(field: "transfer")
+  eventIdx: String
+  extrinisicIdx: String! @unique
+  success: Boolean
 }
+
 
 type Reward {
   eventIdx: Int!
