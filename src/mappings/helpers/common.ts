@@ -3,6 +3,7 @@ import {Balance} from "@polkadot/types/interfaces";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types/types/codec";
 import { Vec } from '@polkadot/types';
+import { encodeAddress } from "@polkadot/util-crypto";
 const batchCalls = ["batch", "batchAll"]
 const transferCalls = ["transfer", "transferKeepAlive"]
 
@@ -10,6 +11,9 @@ const transferCalls = ["transfer", "transferKeepAlive"]
 //     return [...new Set(array)];
 // }
 
+export function convertAddressToSubstrate(address: string) : string {
+    return encodeAddress(address, 42);
+}
 export function isBatch(call: CallBase<AnyTuple>) : boolean {
     return call.section == "utility" && batchCalls.includes(call.method)
 }

@@ -1,6 +1,7 @@
 import { PROVIDER , INDEXER } from "../../constants"
 import axios, {AxiosRequestConfig} from "axios"
 import { ApiPromise } from "@polkadot/api"
+import { convertAddressToSubstrate } from "./common"
 
 let api: ApiPromise | undefined
 
@@ -54,5 +55,5 @@ let data = JSON.stringify({
 
 return await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_event?.map ( 
-        (payload:any) => payload?.data?.param0?.value)); 
+        (payload:any) => convertAddressToSubstrate(payload?.data?.param0?.value))); 
 }

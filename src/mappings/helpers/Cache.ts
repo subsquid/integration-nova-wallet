@@ -23,7 +23,7 @@ export async function cachedRewardDestination(
         rewardDestinationByAddress = {}
         
         let method = event.method
-        let section = event.section
+        let section = event.section || event?.name.split('.')?.[0]
 
         // const allAccountsInBlock = block.events
         //     .filter(blockEvent => { 
@@ -36,7 +36,7 @@ export async function cachedRewardDestination(
         const allAccountsInBlock:any = await allAccounts(block.height, method, section || '')
 
         // looks like accountAddress not related to events so just try to query payee directly
-        if (allAccountsInBlock.length === 0) {
+        if (allAccountsInBlock?.length === 0) {
             rewardDestinationByAddress[blockId] = {}
             return await api.query.staking.payee(accountAddress)
         }
@@ -47,7 +47,7 @@ export async function cachedRewardDestination(
         let destinationByAddress: {[address: string]: RewardDestination} = {}
         
         // something went wrong, so just query for single accountAddress
-        if (rewardDestinations.length !== allAccountsInBlock.length) {
+        if (rewardDestinations?.length !== allAccountsInBlock?.length) {
             const payee = await api.query.staking.payee(accountAddress)
             destinationByAddress[accountAddress] = payee
             rewardDestinationByAddress[blockId] = destinationByAddress
@@ -102,7 +102,7 @@ export async function cachedController(
         }
 
         // looks like accountAddress not related to events so just try to query controller directly
-        if (controllerNeedAccounts.length === 0) {
+        if (controllerNeedAccounts?.length === 0) {
             controllersByStash[blockId] = {}
             let accountId = await api.query.staking.bonded(accountAddress)
             return accountId.toString()
@@ -114,7 +114,7 @@ export async function cachedController(
         let bondedByAddress: {[address: string]: string} = {}
         
         // something went wrong, so just query for single accountAddress
-        if (controllers.length !== controllerNeedAccounts.length) {
+        if (controllers?.length !== controllerNeedAccounts?.length) {
             const controller = await api.query.staking.bonded(accountAddress)
             let controllerAddress = controller.toString()
             bondedByAddress[accountAddress] = controllerAddress

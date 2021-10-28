@@ -30,10 +30,10 @@ mappings:
       handler: handleBalanceDeposit
     - event: treasury.Deposit
       handler: handleTreasuryDeposit
-    # - event: staking.Reward
-    #   handler: handleReward
-    # - event: staking.Rewarded
-    #   handler: handleRewarded
+    - event: staking.Reward
+      handler: handleReward
+    - event: staking.Rewarded
+      handler: handleRewarded
     # - event: staking.Slash
     #   handler: handleSlash
     # - event: staking.Slashed
