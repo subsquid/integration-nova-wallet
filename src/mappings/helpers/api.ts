@@ -23,7 +23,7 @@ export const axiosPOSTRequest = async (
         data : data
       };
       
-      axios(config)
+     return axios(config)
       .then(function (response) {
         return response.data;
       })
@@ -38,15 +38,17 @@ export const allAccounts = async (
     method: string,
     section : string
 ) => {
-let data = JSON.stringify({
-  query: `query MyQuery {
+  // please be cautions when modifying query, extra spaces line endings could cause query not to work
+const query =`query MyQuery {
   substrate_event(where: {blockNumber: {_eq: ${blockNumber}}, method: {_eq: ${method}}, section: {_eq: ${section}}}) {
     id
     method
     section
     data
   }
-}`,
+}`
+let data = JSON.stringify({
+  query,
   variables: {}
 });
 
