@@ -57,3 +57,26 @@ return await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_event?.map ( 
         (payload:any) => convertAddressToSubstrate(payload?.data?.param0?.value))); 
 }
+// API tp fetch all accounts for a specific method in the indexer
+export const allBlockExtrinsics = async (
+    blockNumber : number
+) => {
+  // please be cautions when modifying query, extra spaces line endings could cause query not to work
+const query =`query MyQuery {
+  substrate_extrinsic (where:{blockNumber:{_eq:${blockNumber}}}){
+    section
+    signer
+    method
+    id
+    args
+  }
+}
+`
+let data = JSON.stringify({
+  query,
+  variables: {}
+});
+
+return await axiosPOSTRequest(data).then(
+    (result:any) => result?.data?.substrate_extrinsic)
+}

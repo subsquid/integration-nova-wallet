@@ -15,6 +15,7 @@ import {Balance} from "@polkadot/types/interfaces";
 import {handleRewardRestakeForAnalytics, handleSlashForAnalytics} from "./StakeChanged"
 import {cachedRewardDestination, cachedController} from "./helpers/Cache"
 import { Staking } from '../types';
+import { allBlockExtrinsics } from './helpers/api';
 
 function isPayoutStakers(call: CallBase<AnyTuple>): boolean {
     return call.method == "payoutStakers"
@@ -80,16 +81,20 @@ async function handleRewardForTxHistory({
     block,
     extrinsic,
   }: EventContext & StoreContext): Promise<void> {
-    // let element = await HistoryElement.get(eventId(rewardEvent))
+    const element = await store.find(HistoryElement, // recheck
+        {
+          where: {id:eventId(event) }
+        });
     // recheck
-    // if (element !== undefined) {
-    //     // already processed reward previously
-    //     return;
-    // }
+    if (element.length !== 0) {
+        // already processed reward previously
+        return;
+    }
 
-    // let payoutCallsArgs = rewardEvent.block.block.extrinsics
-    //     .map(extrinsic => determinePayoutCallsArgs(extrinsic.method, extrinsic.signer.toString()))
-    //     .filter(args => args.length != 0)
+    const blockExtrinsic = await allBlockExtrinsics(block.height);
+    // let payoutCallsArgs = blockExtrinsic
+    //     .map((extrinsic:any) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
+    //     .filter((args:any) => args.length != 0)
     //     .flat()
 
     // if (payoutCallsArgs.length == 0) {
