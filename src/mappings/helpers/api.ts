@@ -5,6 +5,19 @@ import { convertAddressToSubstrate } from "./common"
 
 let api: ApiPromise | undefined
 
+interface allBlockEvents {
+  section : string;
+  method: string;
+  id: string;
+  data:  any;
+  blockHash: string;
+  params: any;
+  name : string;
+  indexInBlock : any;
+  blockNumber : any;
+  blockTimestamp: any;
+}
+
 export const apiService =  async () => {
     if (api) return api;
     api = await ApiPromise.create({ provider: PROVIDER })
@@ -56,6 +69,35 @@ let data = JSON.stringify({
 return await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_event?.map ( 
         (payload:any) => convertAddressToSubstrate(payload?.data?.param0?.value))); 
+}
+export const allBlockEvents = async (
+    blockNumber : number
+) => {
+  // please be cautions when modifying query, extra spaces line endings could cause query not to work
+const query =`query MyQuery {
+  substrate_event (where:{blockNumber:{_eq:${blockNumber}}}){
+    section
+    method
+    id
+    data
+    blockHash
+    params
+    name
+    indexInBlock
+    blockNumber
+    blockTimestamp
+  }
+}`
+let data = JSON.stringify({
+  query,
+  variables: {}
+});
+
+return await axiosPOSTRequest(data).then(
+    (result:any) => {
+      const response: Array<allBlockEvents> = result?.data?.substrate_event;
+      return response
+    }); 
 }
 // API tp fetch all accounts for a specific method in the indexer
 export const allBlockExtrinsics = async (

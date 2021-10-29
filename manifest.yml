@@ -34,10 +34,10 @@ mappings:
       handler: handleReward
     - event: staking.Rewarded
       handler: handleRewarded
-    # - event: staking.Slash
-    #   handler: handleSlash
-    # - event: staking.Slashed
-    #   handler: handleSlashed
+    - event: staking.Slash
+      handler: handleSlash
+    - event: staking.Slashed
+      handler: handleSlashed
     - event : staking.StakingElection
       handler: handleNewEra
     - event: staking.StakersElected
@@ -50,5 +50,5 @@ mappings:
   preBlockHooks:
   postBlockHooks:
   # range: '[8948000, ]' fpr era
-  range: '[9795779, ]'
+  range: '[3570175, ]'
 

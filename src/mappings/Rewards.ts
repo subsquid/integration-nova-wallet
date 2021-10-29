@@ -6,7 +6,8 @@ import {
     timestamp,
     eventId,
     isProxy,
-    callFromProxy
+    callFromProxy,
+    eventIdFromBlockAndIdx
 } from "./helpers/common";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types/types/codec";
@@ -15,7 +16,7 @@ import {Balance} from "@polkadot/types/interfaces";
 import {handleRewardRestakeForAnalytics, handleSlashForAnalytics} from "./StakeChanged"
 import {cachedRewardDestination, cachedController} from "./helpers/Cache"
 import { Staking } from '../types';
-import { allBlockExtrinsics } from './helpers/api';
+import { allBlockEvents, allBlockExtrinsics, apiService } from './helpers/api';
 
 function isPayoutStakers(call: CallBase<AnyTuple>): boolean {
     return call.method == "payoutStakers"
@@ -92,78 +93,79 @@ async function handleRewardForTxHistory({
     }
 
     const blockExtrinsic = await allBlockExtrinsics(block.height);
-    // let payoutCallsArgs = blockExtrinsic
-    //     .map((extrinsic:any) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
-    //     .filter((args:any) => args.length != 0)
-    //     .flat()
+    let payoutCallsArgs = blockExtrinsic
+        .map((extrinsic:any) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
+        .filter((args:any) => args.length != 0)
+        .flat()
 
-    // if (payoutCallsArgs.length == 0) {
-    //     return
-    // }
+    if (payoutCallsArgs.length == 0) {
+        return
+    }
 
-    // const payoutValidators = payoutCallsArgs.map(([validator,]) => validator)
+    const payoutValidators = payoutCallsArgs.map(([validator,]:any) => validator)
 
-    // const initialCallIndex = -1
+    const initialCallIndex = -1
 
-    // var accountsMapping: {[address: string]: string} = {}
+    var accountsMapping: {[address: string]: string} = {}
+    let events = await allBlockEvents(block.height)
+    for (const eventRecord of events) {
+        if (
+            eventRecord.section == event.section && 
+            eventRecord.method == event.method) {
 
-    // for (const eventRecord of rewardEvent.block.events) {
-    //     if (
-    //         eventRecord.event.section == rewardEvent.event.section && 
-    //         eventRecord.event.method == rewardEvent.event.method) {
+            const [account, _] = new Staking.RewardedEvent(eventRecord).params
 
-    //         let {event: {data: [account, _]}} = eventRecord
+            let accountAddress = account.toString()
+            let rewardDestination = await cachedRewardDestination(accountAddress, eventRecord as SubstrateEvent, block)
 
-    //         let accountAddress = account.toString()
-    //         let rewardDestination = await cachedRewardDestination(accountAddress, eventRecord as SubstrateEvent)
+            if (rewardDestination.isStaked || rewardDestination.isStash) {
+                accountsMapping[accountAddress] = accountAddress
+            } else if (rewardDestination.isController) {
+                accountsMapping[accountAddress] = await cachedController(accountAddress, eventRecord as SubstrateEvent, block)
+            } else if (rewardDestination.isAccount) {
+                accountsMapping[accountAddress] = rewardDestination.asAccount.toString()
+            }
+        }
+    }
 
-    //         if (rewardDestination.isStaked || rewardDestination.isStash) {
-    //             accountsMapping[accountAddress] = accountAddress
-    //         } else if (rewardDestination.isController) {
-    //             accountsMapping[accountAddress] = await cachedController(accountAddress, eventRecord as SubstrateEvent)
-    //         } else if (rewardDestination.isAccount) {
-    //             accountsMapping[accountAddress] = rewardDestination.asAccount.toString()
-    //         }
-    //     }
-    // }
-
-    // await buildRewardEvents(
-    //     block,
-    //     extrinsic,
-    //     event.method,
-    //     event.section,
-    //     accountsMapping,
-    //     initialCallIndex,
-    //     (currentCallIndex, eventAccount) => {
-    //         if (payoutValidators.length > currentCallIndex + 1) {
-    //             return payoutValidators[currentCallIndex + 1] == eventAccount ? currentCallIndex + 1 : currentCallIndex
-    //         } else {
-    //             return currentCallIndex
-    //         }
-    //     },
-    //     (currentCallIndex, eventIdx, stash, amount) => {
-    //         if (currentCallIndex == -1) {
-    //             return {
-    //                 eventIdx: eventIdx,
-    //                 amount: amount,
-    //                 isReward: true,
-    //                 stash: stash,
-    //                 validator: "",
-    //                 era: -1
-    //             }
-    //         } else {
-    //             const [validator, era] = payoutCallsArgs[currentCallIndex]
-    //             return {
-    //                 eventIdx: eventIdx,
-    //                 amount: amount,
-    //                 isReward: true,
-    //                 stash: stash,
-    //                 validator: validator,
-    //                 era: era
-    //             }
-    //         }
-    //     }
-    // )
+    await buildRewardEvents(
+        block,
+        extrinsic,
+        store,
+        event.method,
+        event.section || '',
+        accountsMapping,
+        initialCallIndex,
+        (currentCallIndex, eventAccount) => {
+            if (payoutValidators.length > currentCallIndex + 1) {
+                return payoutValidators[currentCallIndex + 1] == eventAccount ? currentCallIndex + 1 : currentCallIndex
+            } else {
+                return currentCallIndex
+            }
+        },
+        (currentCallIndex, eventIdx, stash, amount):any => {
+            if (currentCallIndex == -1) {
+                return {
+                    eventIdx: eventIdx,
+                    amount: amount,
+                    isReward: true,
+                    stash: stash,
+                    validator: "",
+                    era: -1
+                }
+            } else {
+                const [validator, era] = payoutCallsArgs[currentCallIndex]
+                return {
+                    eventIdx: eventIdx,
+                    amount: amount,
+                    isReward: true,
+                    stash: stash,
+                    validator: validator,
+                    era: era
+                }
+            }
+        }
+    )
 }
 
 function determinePayoutCallsArgs(causeCall: CallBase<AnyTuple>, sender: string) : [string, number][] {
@@ -188,112 +190,150 @@ function determinePayoutCallsArgs(causeCall: CallBase<AnyTuple>, sender: string)
     }
 }
 
-// export async function handleSlashed(slashEvent: SubstrateEvent): Promise<void> {
-//     await handleSlash(slashEvent)
-// }
+export async function handleSlashed({
+    store,
+    event,
+    block,
+    extrinsic,
+  }: EventContext & StoreContext): Promise<void> {
+    await handleSlash({
+        store,
+        event,
+        block,
+        extrinsic,
+      })
+}
 
-// export async function handleSlash(slashEvent: SubstrateEvent): Promise<void> {
-//     await handleSlashForAnalytics(slashEvent)
-//     await handleSlashForTxHistory(slashEvent)
-//     await updateAccumulatedReward(slashEvent, false)
-// }
+export async function handleSlash({
+    store,
+    event,
+    block,
+    extrinsic,
+  }: EventContext & StoreContext): Promise<void> {
+    await handleSlashForAnalytics({
+        store,
+        event,
+        block,
+        extrinsic,
+      })
+    await handleSlashForTxHistory({
+        store,
+        event,
+        block,
+        extrinsic,
+      })
+    await updateAccumulatedReward(store, event, false)
+}
 
-// async function handleSlashForTxHistory(slashEvent: SubstrateEvent): Promise<void> {
-//     let element = await HistoryElement.get(eventId(slashEvent))
+async function handleSlashForTxHistory({
+    store,
+    event,
+    block,
+    extrinsic,
+  }: EventContext & StoreContext): Promise<void > {
+    const element = await store.find(HistoryElement, // recheck
+        {
+          where: {id:eventId(event) }
+        });
+    // recheck
+    if (element.length !== 0) {
+        // already processed reward previously
+        return;
+    }
+    const api = await apiService()
 
-//     if (element !== undefined) {
-//         // already processed reward previously
-//         return;
-//     }
+    const currentEra = (await api.query.staking.currentEra()).unwrap()
+    const slashDeferDuration = api.consts.staking.slashDeferDuration
 
-//     const currentEra = (await api.query.staking.currentEra()).unwrap()
-//     const slashDeferDuration = api.consts.staking.slashDeferDuration
+    const slashEra = slashDeferDuration == undefined 
+    ? currentEra.toNumber()
+    : currentEra.toNumber() - slashDeferDuration.toNumber()
 
-//     const slashEra = slashDeferDuration == undefined 
-//     ? currentEra.toNumber()
-//     : currentEra.toNumber() - slashDeferDuration.toNumber()
+    const eraStakersInSlashEra = await api.query.staking.erasStakersClipped.entries(slashEra);
+    const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]) => {
+        let [, validatorId] = key.args
 
-//     const eraStakersInSlashEra = await api.query.staking.erasStakersClipped.entries(slashEra);
-//     const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]) => {
-//         let [, validatorId] = key.args
+        return validatorId.toString()
+    })
+    const validatorsSet = new Set(validatorsInSlashEra)
 
-//         return validatorId.toString()
-//     })
-//     const validatorsSet = new Set(validatorsInSlashEra)
+    const initialValidator: string = ""
 
-//     const initialValidator: string = ""
+    await buildRewardEvents(
+        block,
+        extrinsic,
+        store,
+        event.method,
+        event.section || '',
+        {},
+        initialValidator,
+        (currentValidator, eventAccount) => {
+            return validatorsSet.has(eventAccount) ? eventAccount : currentValidator
+        },
+        (validator, eventIdx, stash, amount):any => {
 
-//     await buildRewardEvents(
-//         slashEvent.block,
-//         slashEvent.extrinsic,
-//         slashEvent.event.method,
-//         slashEvent.event.section,
-//         {},
-//         initialValidator,
-//         (currentValidator, eventAccount) => {
-//             return validatorsSet.has(eventAccount) ? eventAccount : currentValidator
-//         },
-//         (validator, eventIdx, stash, amount) => {
+            return {
+                eventIdx: eventIdx,
+                amount: amount,
+                isReward: false,
+                stash: stash,
+                validator: validator,
+                era: slashEra
+            }
+        }
+    )
+}
 
-//             return {
-//                 eventIdx: eventIdx,
-//                 amount: amount,
-//                 isReward: false,
-//                 stash: stash,
-//                 validator: validator,
-//                 era: slashEra
-//             }
-//         }
-//     )
-// }
+async function buildRewardEvents<A>(
+    block: SubstrateBlock,
+    extrinsic: SubstrateExtrinsic | undefined,
+    store: DatabaseManager,
+    eventMethod: String,
+    eventSection: String,
+    accountsMapping: {[address: string]: string},
+    initialInnerAccumulator: A,
+    produceNewAccumulator: (currentAccumulator: A, eventAccount: string) => A,
+    produceReward: (currentAccumulator: A, eventIdx: number, stash: string, amount: string) => Reward
+) {
+    let blockNumber = block.height
+    let blockTimestamp = timestamp(block)
+    let events = await allBlockEvents(blockNumber)
+    const [, savingPromises] = events.reduce<[A, Promise<void>[]]>(
+        (accumulator, eventRecord, eventIndex) => {
+            let [innerAccumulator, currentPromises] = accumulator
 
-// async function buildRewardEvents<A>(
-//     block: SubstrateBlock,
-//     extrinsic: SubstrateExtrinsic | undefined,
-//     eventMethod: String,
-//     eventSection: String,
-//     accountsMapping: {[address: string]: string},
-//     initialInnerAccumulator: A,
-//     produceNewAccumulator: (currentAccumulator: A, eventAccount: string) => A,
-//     produceReward: (currentAccumulator: A, eventIdx: number, stash: string, amount: string) => Reward
-// ) {
-//     let blockNumber = block.height
-//     let blockTimestamp = timestamp(block)
+            if (!(eventRecord.method == eventMethod && eventRecord.section == eventSection)) return accumulator
 
-//     const [, savingPromises] = block.events.reduce<[A, Promise<void>[]]>(
-//         (accumulator, eventRecord, eventIndex) => {
-//             let [innerAccumulator, currentPromises] = accumulator
+            const [account, amount] = new Staking.SlashedEvent(eventRecord).params
 
-//             if (!(eventRecord.event.method == eventMethod && eventRecord.event.section == eventSection)) return accumulator
+            const newAccumulator = produceNewAccumulator(innerAccumulator, account.toString())
 
-//             let {event: {data: [account, amount]}} = eventRecord
+            const eventId = eventIdFromBlockAndIdx(blockNumber.toString(), eventIndex.toString())
 
-//             const newAccumulator = produceNewAccumulator(innerAccumulator, account.toString())
+            const element = new HistoryElement({
+            id: eventId
+            });
 
-//             const eventId = eventIdFromBlockAndIdx(blockNumber, eventIndex.toString())
+            element.timestamp = blockTimestamp
 
-//             const element = new HistoryElement(eventId);
+            const accountAddress = account.toString()
+            const destinationAddress = accountsMapping[accountAddress]
+            element.address = destinationAddress != undefined ? destinationAddress : accountAddress
 
-//             element.timestamp = blockTimestamp
+            element.blockNumber = block.height
+            if (extrinsic !== undefined) {
+                element.extrinsicHash = extrinsic.hash && extrinsic.hash.toString()
+                element.extrinsicIdx = extrinsic.id
+            }
+            element.reward = produceReward(newAccumulator, eventIndex, accountAddress, amount.toString())
 
-//             const accountAddress = account.toString()
-//             const destinationAddress = accountsMapping[accountAddress]
-//             element.address = destinationAddress != undefined ? destinationAddress : accountAddress
+            currentPromises.push(store.save(element))
 
-//             element.blockNumber = block.header.number.toNumber()
-//             if (extrinsic !== undefined) {
-//                 element.extrinsicHash = extrinsic.extrinsic.hash.toString()
-//                 element.extrinsicIdx = extrinsic.idx
-//             }
-//             element.reward = produceReward(newAccumulator, eventIndex, accountAddress, amount.toString())
+            return [newAccumulator, currentPromises];
+        }, [initialInnerAccumulator, []])
 
-//             currentPromises.push(element.save())
-
-//             return [newAccumulator, currentPromises];
-//         }, [initialInnerAccumulator, []])
-
-//     await Promise.allSettled(savingPromises);
-// }
+    await Promise.allSettled(savingPromises);
+}
 
 async function updateAccumulatedReward(store : DatabaseManager, event: SubstrateEvent, isReward: boolean): Promise<void> {
     const [accountId, amount] = isReward ? new Staking.RewardedEvent(event).params 
