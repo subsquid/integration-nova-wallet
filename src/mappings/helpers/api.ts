@@ -46,7 +46,12 @@ export const axiosPOSTRequest = async (
       });
 }
 
-// API tp fetch all accounts for a specific method in the indexer
+/**
+ * API to fetch all accounts for a specific method in the indexer
+ * @param {number} blockNumber 
+ * @param {string} method 
+ * @param {string} section 
+ */
 export const allAccounts = async (
     blockNumber : number,
     method: string,
@@ -70,6 +75,12 @@ return await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_event?.map ( 
         (payload:any) => convertAddressToSubstrate(payload?.data?.param0?.value))); 
 }
+
+/**
+ * API to fetch all block events
+ * @param {number} blockNumber 
+ * @returns {Array<allBlockEvents>}
+ */
 export const allBlockEvents = async (
     blockNumber : number
 ) => {
@@ -99,7 +110,11 @@ return await axiosPOSTRequest(data).then(
       return response
     }); 
 }
-// API tp fetch all accounts for a specific method in the indexer
+
+/**
+ *  API to fetch all block extrinsics with blocknumber
+ * @param {number} blockNumber 
+ */
 export const allBlockExtrinsics = async (
     blockNumber : number
 ) => {
