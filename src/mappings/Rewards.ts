@@ -320,7 +320,7 @@ async function buildRewardEvents<A>(
             element.address = destinationAddress != undefined ? destinationAddress : accountAddress
 
             element.blockNumber = block.height
-            if (extrinsic !== undefined) {
+            if (extrinsic !== null && extrinsic !== undefined) {
                 element.extrinsicHash = extrinsic.hash && extrinsic.hash.toString()
                 element.extrinsicIdx = extrinsic.id
             }

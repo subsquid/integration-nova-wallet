@@ -53,5 +53,5 @@ mappings:
   preBlockHooks:
   postBlockHooks:
   # range: '[8948000, ]' fpr era
-  range: '[3570175, ]'
+  # range: '[9899297, ]' for slash
 
