@@ -16,7 +16,7 @@ RUN npm ci --production
 COPY --from=builder /hydra-build/lib lib
 ADD db db
 ADD manifest.yml .
-ADD schema.graphql schema.graphql
+ADD schema.graphql .
 ADD .env .
 CMD ["npm", "run", "processor:start"]
 
