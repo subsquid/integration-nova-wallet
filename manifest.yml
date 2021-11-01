@@ -58,5 +58,5 @@ mappings:
   postBlockHooks:
   # range: '[8948000, ]' fpr era
   # range: '[9899297, ]' for slash
-  range: '[27572,]'
+  # range: '[27572,]'
 
