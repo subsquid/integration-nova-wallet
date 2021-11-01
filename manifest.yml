@@ -37,10 +37,10 @@ mappings:
       handler: handleReward
     - event: staking.Rewarded
       handler: handleRewarded
-    # - event: staking.Slash
-    #   handler: handleSlash
-    # - event: staking.Slashed
-    #   handler: handleSlashed
+    - event: staking.Slash
+      handler: handleSlash
+    - event: staking.Slashed
+      handler: handleSlashed
     - event : staking.StakingElection
       handler: handleNewEra
     - event: staking.StakersElected

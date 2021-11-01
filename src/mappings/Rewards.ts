@@ -242,7 +242,7 @@ async function handleSlashForTxHistory({
     const api = await apiService()
 
     const currentEra = (await api.query.staking.currentEra()).unwrap()
-    const slashDeferDuration = api.consts.staking.slashDeferDuration
+    const slashDeferDuration = await api.consts.staking.slashDeferDuration
 
     const slashEra = slashDeferDuration == undefined 
     ? currentEra.toNumber()
