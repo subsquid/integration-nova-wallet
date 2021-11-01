@@ -15,8 +15,11 @@ typegen:
     - staking.Slashed
     - staking.Bonded
     - staking.Unbonded
+    - staking.pay
   calls:
     # - timestamp.set
+    - staking.payout_stakers
+    - staking.payout_validator
     - balances.transfer_keep_alive
 
 mappings:
@@ -34,10 +37,10 @@ mappings:
       handler: handleReward
     - event: staking.Rewarded
       handler: handleRewarded
-    - event: staking.Slash
-      handler: handleSlash
-    - event: staking.Slashed
-      handler: handleSlashed
+    # - event: staking.Slash
+    #   handler: handleSlash
+    # - event: staking.Slashed
+    #   handler: handleSlashed
     - event : staking.StakingElection
       handler: handleNewEra
     - event: staking.StakersElected

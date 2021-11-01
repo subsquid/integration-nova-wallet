@@ -78,7 +78,7 @@ export async function cachedController(
         controllersByStash = {}
         
         let method = event.method
-        let section = event.section
+        let section = event.section || event.name.split(".")[0]
 
         const allAccountsInBlock:any = await allAccounts(block.height, method, section || '')
 

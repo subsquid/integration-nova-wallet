@@ -2,10 +2,11 @@ import { PROVIDER , INDEXER } from "../../constants"
 import axios, {AxiosRequestConfig} from "axios"
 import { ApiPromise } from "@polkadot/api"
 import { convertAddressToSubstrate } from "./common"
+import { SubstrateExtrinsic } from "@subsquid/hydra-common"
 
 let api: ApiPromise | undefined
 
-interface allBlockEvents {
+export interface allBlockEvents {
   section : string;
   method: string;
   id: string;
@@ -16,6 +17,15 @@ interface allBlockEvents {
   indexInBlock : any;
   blockNumber : any;
   blockTimestamp: any;
+}
+
+export interface allBlockExrinisics {
+  section : string;
+  method: string;
+  id: string;
+  signer: string;
+  args :any;
+ 
 }
 
 export const apiService =  async () => {
@@ -117,7 +127,7 @@ return await axiosPOSTRequest(data).then(
  */
 export const allBlockExtrinsics = async (
     blockNumber : number
-) => {
+): Promise<Array<allBlockExrinisics> | []> => {
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
   substrate_extrinsic (where:{blockNumber:{_eq:${blockNumber}}}){

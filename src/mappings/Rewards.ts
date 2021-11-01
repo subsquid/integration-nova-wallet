@@ -1,5 +1,5 @@
-import {AccumulatedReward, ErrorEvent, HistoryElement, Reward} from '../generated/model';
-import {DatabaseManager, EventContext, StoreContext, SubstrateBlock, SubstrateEvent, SubstrateExtrinsic} from "@subsquid/hydra-common";
+import {AccumulatedReward, ErrorEvent, Extrinsic, HistoryElement, Reward} from '../generated/model';
+import {DatabaseManager, EventContext, ExtrinsicArg, StoreContext, SubstrateBlock, SubstrateEvent, SubstrateExtrinsic} from "@subsquid/hydra-common";
 import {
     callsFromBatch,
     isBatch,
@@ -16,26 +16,25 @@ import {Balance} from "@polkadot/types/interfaces";
 import {handleRewardRestakeForAnalytics, handleSlashForAnalytics} from "./StakeChanged"
 import {cachedRewardDestination, cachedController} from "./helpers/Cache"
 import { Staking } from '../types';
-import { allBlockEvents, allBlockExtrinsics, apiService } from './helpers/api';
+import { allBlockEvents, allBlockExrinisics, allBlockExtrinsics, apiService } from './helpers/api';
 
-function isPayoutStakers(call: CallBase<AnyTuple>): boolean {
+function isPayoutStakers(call: allBlockExrinisics): boolean {
     return call.method == "payoutStakers"
 }
 
-function isPayoutValidator(call: CallBase<AnyTuple>): boolean {
+function isPayoutValidator(call: allBlockExrinisics): boolean {
     return call.method == "payoutValidator"
 }
 
-function extractArgsFromPayoutStakers(call: CallBase<AnyTuple>): [string, number] {
-    const [validatorAddressRaw, eraRaw] = call.args
-
-    return [validatorAddressRaw.toString(), (eraRaw as EraIndex).toNumber()]
+function extractArgsFromPayoutStakers(call: allBlockExrinisics): [string, number] {
+    const {validator_stash,era } = new Staking.Payout_stakersCall(call  as SubstrateExtrinsic)
+    return [validator_stash.toString(), era.toNumber()]
 }
 
-function extractArgsFromPayoutValidator(call: CallBase<AnyTuple>, sender: string): [string, number] {
-    const [eraRaw] = call.args
+function extractArgsFromPayoutValidator(call: allBlockExrinisics, sender: string): [string, number] {
+    const {era} = new Staking.Payout_validatorCall(call as SubstrateExtrinsic)
 
-    return [sender, (eraRaw as EraIndex).toNumber()]
+    return [sender, era.toNumber()]
 }
 
 export async function handleRewarded({
@@ -94,7 +93,7 @@ async function handleRewardForTxHistory({
 
     const blockExtrinsic = await allBlockExtrinsics(block.height);
     let payoutCallsArgs = blockExtrinsic
-        .map((extrinsic:any) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
+        .map((extrinsic:allBlockExrinisics) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
         .filter((args:any) => args.length != 0)
         .flat()
 
@@ -110,7 +109,7 @@ async function handleRewardForTxHistory({
     let events = await allBlockEvents(block.height)
     for (const eventRecord of events) {
         if (
-            eventRecord.section == event.section && 
+            eventRecord.section == (event.section || event.name.split(".")[0]) && 
             eventRecord.method == event.method) {
 
             const [account, _] = new Staking.RewardedEvent(eventRecord).params
@@ -133,7 +132,7 @@ async function handleRewardForTxHistory({
         extrinsic,
         store,
         event.method,
-        event.section || '',
+        event.section || event.name.split(".")[0],
         accountsMapping,
         initialCallIndex,
         (currentCallIndex, eventAccount) => {
@@ -168,22 +167,22 @@ async function handleRewardForTxHistory({
     )
 }
 
-function determinePayoutCallsArgs(causeCall: CallBase<AnyTuple>, sender: string) : [string, number][] {
-    if (isPayoutStakers(causeCall)) {
-        return [extractArgsFromPayoutStakers(causeCall)]
-    } else if (isPayoutValidator(causeCall)) {
-        return [extractArgsFromPayoutValidator(causeCall, sender)]
-    } else if (isBatch(causeCall)) {
-        return callsFromBatch(causeCall)
-            .map(call => {
+function determinePayoutCallsArgs(extrinsic:allBlockExrinisics, sender: string) : [string, number][] {
+    if (isPayoutStakers(extrinsic)) {
+        return [extractArgsFromPayoutStakers(extrinsic)]
+    } else if (isPayoutValidator(extrinsic)) {
+        return [extractArgsFromPayoutValidator(extrinsic, sender)]
+    } else if (isBatch(extrinsic)) {
+        return callsFromBatch(extrinsic)
+            .map((call:any) => {
                 return determinePayoutCallsArgs(call, sender)
                     .map((value, index, array) => {
                         return value
                     })
             })
             .flat()
-    } else if (isProxy(causeCall)) {
-        let proxyCall = callFromProxy(causeCall)
+    } else if (isProxy(extrinsic)) {
+        let proxyCall = callFromProxy(extrinsic)
         return determinePayoutCallsArgs(proxyCall, sender)
     } else {
         return []
@@ -264,7 +263,7 @@ async function handleSlashForTxHistory({
         extrinsic,
         store,
         event.method,
-        event.section || '',
+        event.section || event.name.split(".")[0],
         {},
         initialValidator,
         (currentValidator, eventAccount) => {

@@ -1,5 +1,40 @@
 {
     "cSpell.words": [
         "extrinisic"
+    ],
+    "sqltools.connections": [
+        {
+            "pgOptions": {
+                "ssl": true
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 27364,
+            "driver": "PostgreSQL",
+            "name": "local",
+            "username": "postgres",
+            "password": "postgres",
+            "database": "hydra"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 27364,
+            "driver": "PostgreSQL",
+            "name": "local",
+            "database": "hydra",
+            "username": "postgres",
+            "password": "postgres"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "local",
+            "database": "hydra",
+            "username": "postgres",
+            "password": "postgres"
+        }
     ]
 }
