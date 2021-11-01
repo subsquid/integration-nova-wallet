@@ -12,7 +12,7 @@
     "db:revert": "hydra-cli db:revert",
     "db:reset": "hydra-cli db:drop && hydra-cli db:create && hydra-processor migrate && hydra-cli db:migrate",
     "processor:migrate": "hydra-processor migrate",
-    "processor:start-debug": "DEBUG=hydra-processor:* VERBOSE=true hydra-processor run",
+    "processor:start-debug": "DEBUG=hydra-processor:mappings-executor hydra-processor run",
     "processor:start": "hydra-processor run",
     "query-node:start": "node ./lib/generated/server.js"
   },
