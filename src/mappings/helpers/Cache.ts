@@ -33,7 +33,7 @@ export async function cachedRewardDestination(
         //         let {event: {data: [accountId, ]}} = event
         //         return accountId
         //     });
-        const allAccountsInBlock:any = await allAccounts(block.height, method, section || '')
+        const allAccountsInBlock:any = await allAccounts(block.height, method, section)
 
         // looks like accountAddress not related to events so just try to query payee directly
         if (allAccountsInBlock?.length === 0) {

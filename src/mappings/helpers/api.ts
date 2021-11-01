@@ -2,7 +2,6 @@ import { PROVIDER , INDEXER } from "../../constants"
 import axios, {AxiosRequestConfig} from "axios"
 import { ApiPromise } from "@polkadot/api"
 import { convertAddressToSubstrate } from "./common"
-import { SubstrateExtrinsic } from "@subsquid/hydra-common"
 
 let api: ApiPromise | undefined
 
@@ -83,7 +82,12 @@ let data = JSON.stringify({
 
 return await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_event?.map ( 
-        (payload:any) => convertAddressToSubstrate(payload?.data?.param0?.value))); 
+        (payload:any) => { 
+         let address = payload?.data?.param0?.value
+         if (typeof address === 'string')
+         return  convertAddressToSubstrate(payload?.data?.param0?.value) 
+        }).filter((entry:any) => entry)
+        )
 }
 
 /**
