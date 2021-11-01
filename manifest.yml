@@ -35,8 +35,12 @@ mappings:
       handler: handleTreasuryDeposit
     - event: staking.Reward
       handler: handleReward
+      filter:
+        specVersion: '[1050, )'
     - event: staking.Rewarded
       handler: handleRewarded
+      filter:
+        specVersion: '[1050, )'
     - event: staking.Slash
       handler: handleSlash
     - event: staking.Slashed
@@ -54,4 +58,5 @@ mappings:
   postBlockHooks:
   # range: '[8948000, ]' fpr era
   # range: '[9899297, ]' for slash
+  range: '[27572,]'
 

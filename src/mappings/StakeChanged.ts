@@ -74,7 +74,7 @@ export async function handleSlashForAnalytics({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-  const [validatorOrNominatorAccountId, amount] = new Staking.BondedEvent(event).params
+  const [validatorOrNominatorAccountId, amount] = new Staking.SlashedEvent(event).params
 
     let address = validatorOrNominatorAccountId.toString()
     let amountBalance = amount.toBigInt() * -1n
@@ -105,7 +105,7 @@ export async function handleRewardRestakeForAnalytics({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void>{
-    const [accountId, amount] = new Staking.BondedEvent(event).params
+    const [accountId, amount] = new Staking.RewardedEvent(event).params
     let accountAddress= accountId.toString()
 
     const payee = await cachedRewardDestination(accountAddress, event, block)
