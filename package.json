@@ -1,6 +1,7 @@
 {
-  "name": "hydra-template",
+  "name": "fearless-indexer",
   "private": true,
+  "version": "0.1.0",
   "scripts": {
     "typegen": "hydra-typegen typegen manifest.yml",
     "codegen": "hydra-cli codegen",
