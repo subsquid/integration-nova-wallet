@@ -110,7 +110,7 @@ export class Payout_validatorCall {
     this._extrinsic = extrinsic
   }
   get era(): u32 {
-    return create('u32', this._extrinsic.args[1].value)
+    return create('u32', this._extrinsic.args[0].value)
   }
 }
 }
