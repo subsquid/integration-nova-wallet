@@ -48,7 +48,6 @@ export async function handleTreasuryDeposit({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-  let test = extrinsic == undefined || !isBalanceTransfer(extrinsic.method, extrinsic.section)
   if (extrinsic == undefined || !isBalanceTransfer(extrinsic.method, extrinsic.section)){
     return
   }
