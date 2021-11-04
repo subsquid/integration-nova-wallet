@@ -24,6 +24,7 @@
     "@subsquid/hydra-processor": "5.0.0-alpha.9",
     "@subsquid/openreader": "^0.2.0",
     "axios": "^0.23.0",
+    "axios-retry": "^3.2.4",
     "inflected": "^2.1.0",
     "typeorm": "0.2.38"
   },
