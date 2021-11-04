@@ -2,7 +2,7 @@
 
 type FeesPaid @entity {
   fee: BigInt!
-  blockProducerAddress: String!
+  blockProducerAddress: String
 }
 
 type Transfer @entity{
