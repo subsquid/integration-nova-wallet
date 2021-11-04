@@ -4,6 +4,7 @@ import {
   EventContext,
   StoreContext,
 } from "@subsquid/hydra-common";
+import { getOrCreate } from './helpers/helpers';
 
 // Each transaction will have a transaction fee
 // the transaction fee will be distributed to
@@ -11,6 +12,12 @@ import {
 // back to treasury (80%). So total fees for a 
 // transaction would be Treasury Fees + 
 // block producer fee
+
+// we will be only calculating fees for balances.transfer requests
+
+function isBalanceTransfer(method: String, section : String ) {
+  return method === 'transfer' && section === 'balances'
+}
 
 export async function handleBalanceDeposit({
   store,
@@ -22,13 +29,11 @@ export async function handleBalanceDeposit({
     return
   }
   const [who, fee] = new Balances.DepositEvent(event).params
-  let feesPaid = await store.get(FeesPaid, {
-    where: { id: extrinsic?.id  },
-  })
-
-  if (feesPaid == null) {
-    return
-  }
+  let feesPaid = await getOrCreate(
+    store,
+    FeesPaid,
+    extrinsic.id
+  )
  
  feesPaid.fee = feesPaid.fee || 0n + fee.toBigInt()
  feesPaid.blockProducerAddress = who.toString();
@@ -43,18 +48,16 @@ export async function handleTreasuryDeposit({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-  
-  if(extrinsic == undefined){
+  let test = extrinsic == undefined || !isBalanceTransfer(extrinsic.method, extrinsic.section)
+  if (extrinsic == undefined || !isBalanceTransfer(extrinsic.method, extrinsic.section)){
     return
   }
   const [fee] = new Treasury.DepositEvent(event).params
-  let feesPaid = await store.get(FeesPaid, {
-    where: { id: extrinsic?.id  },
-  })
-
-  if (feesPaid == null) {
-    return
-  }
+  let feesPaid =  await getOrCreate(
+    store,
+    FeesPaid,
+    extrinsic.id
+  )
   
  feesPaid.fee =feesPaid.fee || 0n  +  fee.toBigInt()
  await store.save(feesPaid)

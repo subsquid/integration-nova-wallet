@@ -13,6 +13,6 @@ export class FeesPaid {
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   fee!: bigint
 
-  @Column_("text", {nullable: false})
-  blockProducerAddress!: string
+  @Column_("text", {nullable: true})
+  blockProducerAddress!: string | undefined | null
 }
