@@ -1,10 +1,10 @@
-import { PROVIDER , INDEXER } from "../../constants"
+import { PROVIDER , INDEXER, API_RETRIES } from "../../constants"
 import axios, {AxiosRequestConfig} from "axios"
 import axiosRetry from 'axios-retry';
 import { ApiPromise } from "@polkadot/api"
 import { convertAddressToSubstrate } from "./common"
 
-axiosRetry(axios, { retries: 3 , retryDelay: axiosRetry.exponentialDelay});
+axiosRetry(axios, { retries: API_RETRIES, retryDelay: axiosRetry.exponentialDelay});
 let api: ApiPromise | undefined
 
 export interface allBlockEvents {
