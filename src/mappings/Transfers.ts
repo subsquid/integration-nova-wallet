@@ -58,7 +58,7 @@ async function populateTransfer(
 ): Promise<void> {
   element.timestamp = timestamp(block);
   element.blockNumber = blockNumber(event);
-  if (extrinsic !== undefined) {
+  if (extrinsic !== undefined && extrinsic !== null) {
     element.extrinsicHash = extrinsic.hash;
     element.extrinsicIdx = extrinsic.id;
   }

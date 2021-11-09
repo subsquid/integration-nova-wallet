@@ -23,7 +23,7 @@ export async function handleBonded({
         StakeChange,
         eventId(event)
       );
-    if (event.extrinsic !== undefined) {
+    if (event.extrinsic !== undefined && event.extrinsic !== null) {
         element.extrinsicHash = event.extrinsic?.hash
     }
     element.blockNumber = block.height
@@ -54,7 +54,7 @@ export async function handleUnbonded({
       StakeChange,
       eventId(event)
     );
-    if (event.extrinsic !== undefined) {
+    if (event.extrinsic !== undefined && event.extrinsic !== null) {
         element.extrinsicHash = event.extrinsic?.hash;
     }
     element.blockNumber = block.height
@@ -85,7 +85,7 @@ export async function handleSlashForAnalytics({
       StakeChange,
       eventId(event)
     );
-    if (event.extrinsic !== undefined) {
+    if (event.extrinsic !== undefined && event.extrinsic !== null) {
         element.extrinsicHash = event.extrinsic?.hash
     }
     element.blockNumber = block.height
@@ -118,7 +118,7 @@ export async function handleRewardRestakeForAnalytics({
           StakeChange,
           eventId(event)
         );
-        if (event.extrinsic !== undefined) {
+        if (event.extrinsic !== undefined && event.extrinsic !== null) {
             element.extrinsicHash = event.extrinsic?.hash
         }
         element.blockNumber = block.height
