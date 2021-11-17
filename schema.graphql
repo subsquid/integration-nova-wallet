@@ -15,40 +15,44 @@ type Transfer @entity{
   success: Boolean!
 }
 
+type AccountHistory @entity {
+  id: ID!
+  address: String!
+  blockNumber: Int!
+  extrinsicIdx: BigInt
+  extrinsicHash: String
+  timestamp: DateTime!
+  item: AccountHistoryItem!
+}
 
-type Reward {
+union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem
+
+type RewardItem {
   eventIdx: Int!
-  amount: String!
-  isReward: Boolean!,
-  era: Int,
-  stash: String,
+  amount: BigInt!
+  era: Int
+  stash: String
   validator: String
 }
+
+type ExtrinsicItem {
+  hash: String!
+  module: String!
+  call: String!
+  fee: BigInt!
+  success: Boolean!
+}
+
+type TransferItem {
+  transfer: Transfer!
+}
+
 
 type AccumulatedReward @entity {
   id: ID! #address
   amount: BigInt!
 }
 
-type Extrinsic {
-  hash: String!
-  module: String!
-  call: String!
-  fee: String!
-  success: Boolean!
-}
-
-type HistoryElement @entity {
-  id: ID!
-  blockNumber: Int!
-  extrinsicIdx: String,
-  extrinsicHash: String
-  timestamp: BigInt! 
-  address: String! 
-  reward: Reward
-  extrinsic: Extrinsic
-  transfer: Transfer
-}
 
 type EraValidatorInfo @entity {
   id: ID!
@@ -64,12 +68,6 @@ type IndividualExposure {
   value: String!
 }
 
-#enum StakeChangeType {
-#  bonded
-#  unbonded
-#  slashed
-#  rewarded
-#}
 
 type StakeChange @entity {
   id: ID!
@@ -92,4 +90,3 @@ type ErrorEvent @entity {
   id: ID!
   description: String!
 }
-

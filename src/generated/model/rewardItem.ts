@@ -1,20 +1,19 @@
 import assert from "assert"
 import * as marshal from "../marshal"
 
-export class Reward {
+export class RewardItem {
+  public readonly isTypeOf = 'RewardItem'
   private _eventIdx!: number
-  private _amount!: string
-  private _isReward!: boolean
+  private _amount!: bigint
   private _era!: number | undefined | null
   private _stash!: string | undefined | null
   private _validator!: string | undefined | null
 
-  constructor(props?: Partial<Omit<Reward, 'toJSON'>>, json?: any) {
+  constructor(props?: Partial<Omit<RewardItem, 'toJSON'>>, json?: any) {
     Object.assign(this, props)
     if (json != null) {
       this._eventIdx = marshal.int.fromJSON(json.eventIdx)
-      this._amount = marshal.string.fromJSON(json.amount)
-      this._isReward = marshal.boolean.fromJSON(json.isReward)
+      this._amount = marshal.bigint.fromJSON(json.amount)
       this._era = json.era == null ? undefined : marshal.int.fromJSON(json.era)
       this._stash = json.stash == null ? undefined : marshal.string.fromJSON(json.stash)
       this._validator = json.validator == null ? undefined : marshal.string.fromJSON(json.validator)
@@ -30,22 +29,13 @@ export class Reward {
     this._eventIdx = value
   }
 
-  get amount(): string {
+  get amount(): bigint {
     assert(this._amount != null, 'uninitialized access')
     return this._amount
   }
 
-  set amount(value: string) {
+  set amount(value: bigint) {
     this._amount = value
-  }
-
-  get isReward(): boolean {
-    assert(this._isReward != null, 'uninitialized access')
-    return this._isReward
-  }
-
-  set isReward(value: boolean) {
-    this._isReward = value
   }
 
   get era(): number | undefined | null {
@@ -74,9 +64,9 @@ export class Reward {
 
   toJSON(): object {
     return {
+      isTypeOf: this.isTypeOf,
       eventIdx: this.eventIdx,
-      amount: this.amount,
-      isReward: this.isReward,
+      amount: marshal.bigint.toJSON(this.amount),
       era: this.era,
       stash: this.stash,
       validator: this.validator,

@@ -1,20 +1,21 @@
 import assert from "assert"
 import * as marshal from "../marshal"
 
-export class Extrinsic {
+export class ExtrinsicItem {
+  public readonly isTypeOf = 'ExtrinsicItem'
   private _hash!: string
   private _module!: string
   private _call!: string
-  private _fee!: string
+  private _fee!: bigint
   private _success!: boolean
 
-  constructor(props?: Partial<Omit<Extrinsic, 'toJSON'>>, json?: any) {
+  constructor(props?: Partial<Omit<ExtrinsicItem, 'toJSON'>>, json?: any) {
     Object.assign(this, props)
     if (json != null) {
       this._hash = marshal.string.fromJSON(json.hash)
       this._module = marshal.string.fromJSON(json.module)
       this._call = marshal.string.fromJSON(json.call)
-      this._fee = marshal.string.fromJSON(json.fee)
+      this._fee = marshal.bigint.fromJSON(json.fee)
       this._success = marshal.boolean.fromJSON(json.success)
     }
   }
@@ -46,12 +47,12 @@ export class Extrinsic {
     this._call = value
   }
 
-  get fee(): string {
+  get fee(): bigint {
     assert(this._fee != null, 'uninitialized access')
     return this._fee
   }
 
-  set fee(value: string) {
+  set fee(value: bigint) {
     this._fee = value
   }
 
@@ -66,10 +67,11 @@ export class Extrinsic {
 
   toJSON(): object {
     return {
+      isTypeOf: this.isTypeOf,
       hash: this.hash,
       module: this.module,
       call: this.call,
-      fee: this.fee,
+      fee: marshal.bigint.toJSON(this.fee),
       success: this.success,
     }
   }

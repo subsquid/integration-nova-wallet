@@ -142,6 +142,7 @@ const query =`query MyQuery {
     method
     id
     args
+    hash
   }
 }
 `
