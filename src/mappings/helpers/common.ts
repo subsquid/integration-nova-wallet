@@ -62,6 +62,10 @@ export function timestamp(block: SubstrateBlock): bigint {
     return  BigInt(Math.round((block.timestamp / 1000)))
 }
 
+export function timestampToDate(block: SubstrateBlock): Date {
+    return  new Date(block.timestamp)
+}
+
 export function calculateFeeAsString(extrinsic?: SubstrateExtrinsic): string {
 // query MyQuery {
 //   substrate_extrinsic(where: {hash: {_eq: "0x5430d945838c8dc84eba9988303b79e8e8a638c45dc2711815712b9f06294116"}}) {

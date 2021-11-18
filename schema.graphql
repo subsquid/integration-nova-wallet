@@ -19,7 +19,7 @@ type AccountHistory @entity {
   id: ID!
   address: String!
   blockNumber: Int!
-  extrinsicIdx: BigInt
+  extrinsicIdx: String
   extrinsicHash: String
   timestamp: DateTime!
   item: AccountHistoryItem!

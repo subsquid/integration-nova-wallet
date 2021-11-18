@@ -1,4 +1,4 @@
-import { FeesPaid, HistoryElement, Transfer } from '../generated/model';
+import { FeesPaid, AccountHistory, Transfer, TransferItem } from '../generated/model';
 import { Balances } from '../types'
 import {
   DatabaseManager,
@@ -12,6 +12,7 @@ import {
   blockNumber,
   eventId,
   timestamp,
+  timestampToDate,
 } from "./helpers/common";
 import { getOrCreate } from "./helpers/helpers";
 
@@ -25,7 +26,7 @@ export async function handleTransfer({
 
   const elementFrom = await getOrCreate(
     store,
-    HistoryElement,
+    AccountHistory,
     eventId(event) + `-from`
   );
  elementFrom.address = from.toString();
@@ -33,7 +34,7 @@ await populateTransfer(elementFrom, event, block, extrinsic, store);
 
   const elementTo = await getOrCreate(
     store,
-    HistoryElement,
+    AccountHistory,
     eventId(event) + `-to`
   );
   elementTo.address = to.toString();
@@ -50,20 +51,20 @@ export async function handleTransferKeepAlive({
 }
 
 async function populateTransfer(
-  element: HistoryElement,
+  element: AccountHistory,
   event: SubstrateEvent,
   block : SubstrateBlock,
   extrinsic : SubstrateExtrinsic | undefined,
   store: DatabaseManager
 ): Promise<void> {
-  element.timestamp = timestamp(block);
+  element.timestamp = timestampToDate(block);
   element.blockNumber = blockNumber(event);
   if (extrinsic !== undefined && extrinsic !== null) {
     element.extrinsicHash = extrinsic.hash;
     element.extrinsicIdx = extrinsic.id;
   }
   const [from, to, value] = new Balances.TransferEvent(event).params
-  let transfer = await store.get(Transfer, {
+  let transfer: Transfer | undefined = await store.get(Transfer, {
     where: { extrinisicIdx: extrinsic?.id  },
   })
   if (transfer == null) {
@@ -91,6 +92,9 @@ async function populateTransfer(
   transfer.success=true;
   transfer.id=event.id
   await store.save(transfer);
-  element.transfer = transfer
+  element.item = new TransferItem({
+    transfer: transfer.id
+  })
+  transfer
   await store.save(element);
 }

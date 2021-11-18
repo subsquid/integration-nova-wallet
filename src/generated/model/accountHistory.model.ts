@@ -17,8 +17,8 @@ export class AccountHistory {
   @Column_("integer", {nullable: false})
   blockNumber!: number
 
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
-  extrinsicIdx!: bigint | undefined | null
+  @Column_("text", {nullable: true})
+  extrinsicIdx!: string | undefined | null
 
   @Column_("text", {nullable: true})
   extrinsicHash!: string | undefined | null
