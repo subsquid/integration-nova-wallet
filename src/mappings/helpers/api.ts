@@ -43,6 +43,7 @@ export interface allBlockExtrinisics {
 export const apiService =  async () => {
     if (api) return api;
     api = await ApiPromise.create({ provider: PROVIDER })
+    await api.isReady
     return api
 }
 
