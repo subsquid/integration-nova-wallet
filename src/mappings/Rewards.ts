@@ -256,14 +256,14 @@ async function handleSlashForTxHistory({
 
     const api = await apiService()
 
-    const currentEra = (await api.query.staking.currentEra.at(block.hash)).unwrap()
-    const slashDeferDuration = await (await api.at(block.hash)).consts.staking.slashDeferDuration
-
+    const currentEra = (await api.query.staking.currentEra()).unwrap()
+    // recheck
+    const slashDeferDuration = await api.consts.staking.slashDeferDuration
     const slashEra = slashDeferDuration == undefined
         ? currentEra.toNumber()
         : currentEra.toNumber() - slashDeferDuration.toNumber()
-
-    const eraStakersInSlashEra = await (await api.at(block.hash)).query.staking.erasStakersClipped.entries(slashEra);
+     //recheck
+    const eraStakersInSlashEra = await api.query.staking.erasStakersClipped.entries(slashEra)
     const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]) => {
         let [, validatorId] = key.args
 
