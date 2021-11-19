@@ -70,10 +70,10 @@ export async function handleReward({
         block,
         extrinsic,
     })
-    //     await updateAccumulatedReward(
-    //     store,
-    //     event,
-    //     true)
+    await updateAccumulatedReward(
+        store,
+        event,
+        true)
 }
 
 async function handleRewardForTxHistory({
@@ -193,13 +193,13 @@ export async function handleSlashed({
     event,
     block,
     extrinsic,
-  }: EventContext & StoreContext): Promise<void> {
+}: EventContext & StoreContext): Promise<void> {
     await handleSlash({
         store,
         event,
         block,
         extrinsic,
-      })
+    })
 }
 
 export async function handleSlash({
@@ -220,7 +220,7 @@ export async function handleSlash({
         block,
         extrinsic,
     })
-    // await updateAccumulatedReward(store, event, false)
+    await updateAccumulatedReward(store, event, false)
 }
 
 async function handleSlashForTxHistory({
@@ -335,23 +335,23 @@ async function buildRewardEvents<A>(
     await Promise.allSettled(savingPromises);
 }
 
-// async function updateAccumulatedReward(store : DatabaseManager, event: SubstrateEvent, isReward: boolean): Promise<void> {
-//     const [accountId, amount] = isReward ? new Staking.RewardedEvent(event).params 
-//     : new Staking.SlashedEvent(event).params;
+async function updateAccumulatedReward(store: DatabaseManager, event: SubstrateEvent, isReward: boolean): Promise<void> {
+    const [accountId, amount] = isReward ? new Staking.RewardedEvent(event).params
+        : new Staking.SlashedEvent(event).params;
 
-//     let accountAddress = accountId.toString()
+    let accountAddress = accountId.toString()
 
-//     let accumulatedReward = await store.get(AccumulatedReward, {
-//         where: { id: accountAddress  },
-//       })
+    let accumulatedReward = await store.get(AccumulatedReward, {
+        where: { id: accountAddress },
+    })
 
-//     if (accumulatedReward == null) {
-//         accumulatedReward = new AccumulatedReward({
-//         id: accountAddress
-//         });
-//         accumulatedReward.amount = BigInt(0)
-//     }
-//     const newAmount = (amount as Balance).toBigInt()
-//     accumulatedReward.amount = accumulatedReward.amount + (isReward ? newAmount : -newAmount)
-//     await store.save(accumulatedReward)
-// }
+    if (accumulatedReward == null) {
+        accumulatedReward = new AccumulatedReward({
+            id: accountAddress
+        });
+        accumulatedReward.amount = BigInt(0)
+    }
+    const newAmount = (amount as Balance).toBigInt()
+    accumulatedReward.amount = accumulatedReward.amount + (isReward ? newAmount : -newAmount)
+    await store.save(accumulatedReward)
+}

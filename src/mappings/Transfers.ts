@@ -22,15 +22,15 @@ export async function handleTransfer({
   block,
   extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-    const [from, to, value] = new Balances.TransferEvent(event).params
+  const [from, to, value] = new Balances.TransferEvent(event).params
 
   const elementFrom = await getOrCreate(
     store,
     AccountHistory,
     eventId(event) + `-from`
   );
- elementFrom.address = from.toString();
-await populateTransfer(elementFrom, event, block, extrinsic, store);
+  elementFrom.address = from.toString();
+  await populateTransfer(elementFrom, event, block, extrinsic, store);
 
   const elementTo = await getOrCreate(
     store,
@@ -38,7 +38,7 @@ await populateTransfer(elementFrom, event, block, extrinsic, store);
     eventId(event) + `-to`
   );
   elementTo.address = to.toString();
-  await populateTransfer(elementTo, event,block, extrinsic,store);
+  await populateTransfer(elementTo, event, block, extrinsic, store);
 }
 
 export async function handleTransferKeepAlive({
@@ -53,8 +53,8 @@ export async function handleTransferKeepAlive({
 async function populateTransfer(
   element: AccountHistory,
   event: SubstrateEvent,
-  block : SubstrateBlock,
-  extrinsic : SubstrateExtrinsic | undefined,
+  block: SubstrateBlock,
+  extrinsic: SubstrateExtrinsic | undefined,
   store: DatabaseManager
 ): Promise<void> {
   element.timestamp = timestampToDate(block);
@@ -65,13 +65,13 @@ async function populateTransfer(
   }
   const [from, to, value] = new Balances.TransferEvent(event).params
   let transfer: Transfer | undefined = await store.get(Transfer, {
-    where: { extrinisicIdx: extrinsic?.id  },
+    where: { extrinisicIdx: extrinsic?.id },
   })
   if (transfer == null) {
     transfer = new Transfer()
   }
 
-  if(extrinsic?.id == undefined){
+  if (extrinsic?.id == undefined) {
     console.error(`extrinisic id undefined for transfer with event id = ${event.id}.Skipping it `)
     return
   }
@@ -79,18 +79,18 @@ async function populateTransfer(
     store,
     FeesPaid,
     extrinsic.id
-  ); 
-  feesPaid.fee = feesPaid.fee|| 0n;
+  );
+  feesPaid.fee = feesPaid.fee || 0n;
   feesPaid.blockProducerAddress = feesPaid.blockProducerAddress || ''
   await store.save(feesPaid);
   transfer.amount = value.toString();
-  transfer.from=from.toString();
-  transfer.to=to.toString();
-  transfer.fee=feesPaid;
-  transfer.extrinisicIdx=extrinsic?.id;
-  transfer.eventIdx=event.id;
-  transfer.success=true;
-  transfer.id=event.id
+  transfer.from = from.toString();
+  transfer.to = to.toString();
+  transfer.fee = feesPaid;
+  transfer.extrinisicIdx = extrinsic?.id;
+  transfer.eventIdx = event.id;
+  transfer.success = true;
+  transfer.id = event.id
   await store.save(transfer);
 
   element.item = new TransferItem({
