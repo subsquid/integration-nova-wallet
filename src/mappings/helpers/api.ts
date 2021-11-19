@@ -2,10 +2,14 @@ import { PROVIDER , INDEXER, API_RETRIES } from "../../constants"
 import axios, {AxiosRequestConfig} from "axios"
 import axiosRetry from 'axios-retry';
 import { ApiPromise } from "@polkadot/api"
-import { convertAddressToSubstrate } from "./common"
+import {  convertAddressToSubstrate } from "./common"
 
 axiosRetry(axios, { retries: API_RETRIES, retryDelay: axiosRetry.exponentialDelay});
 let api: ApiPromise | undefined
+
+let blockEventsCache: {[blockNumber:number]: Array<allBlockEvents>} = {}
+let blockExtrinsicsCache: {[blockNumber:number]: Array<allBlockExrinisics>} = {}
+let accountsCache: any = {}
 
 export interface allBlockEvents {
   section : string;
@@ -68,6 +72,11 @@ export const allAccounts = async (
     method: string,
     section : string
 ) => {
+  if(accountsCache[`${blockNumber}-${method}-${section}`]){
+    return accountsCache[`${blockNumber}-${method}-${section}`]
+  }
+  // clear cache
+  accountsCache = {}
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
   substrate_event(where: {blockNumber: {_eq: ${blockNumber}}, method: {_eq: ${method}}, section: {_eq: ${section}}}) {
@@ -82,7 +91,7 @@ let data = JSON.stringify({
   variables: {}
 });
 
-return await axiosPOSTRequest(data).then(
+accountsCache[`${blockNumber}-${method}-${section}`] = await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_event?.map ( 
         (payload:any) => { 
          let address = payload?.data?.param0?.value
@@ -90,6 +99,8 @@ return await axiosPOSTRequest(data).then(
          return  convertAddressToSubstrate(payload?.data?.param0?.value) 
         }).filter((entry:any) => entry)
         )
+
+return accountsCache[`${blockNumber}-${method}-${section}`]
 }
 
 /**
@@ -100,6 +111,11 @@ return await axiosPOSTRequest(data).then(
 export const allBlockEvents = async (
     blockNumber : number
 ) => {
+  if(blockEventsCache[blockNumber]){
+    return blockEventsCache[blockNumber]
+  }
+  // Clear cache
+  blockEventsCache = {}
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
   substrate_event (where:{blockNumber:{_eq:${blockNumber}}}){
@@ -120,11 +136,12 @@ let data = JSON.stringify({
   variables: {}
 });
 
-return await axiosPOSTRequest(data).then(
+blockEventsCache[blockNumber] = await axiosPOSTRequest(data).then(
     (result:any) => {
       const response: Array<allBlockEvents> = result?.data?.substrate_event;
       return response
     }); 
+return blockEventsCache[blockNumber]
 }
 
 /**
@@ -134,6 +151,12 @@ return await axiosPOSTRequest(data).then(
 export const allBlockExtrinsics = async (
     blockNumber : number
 ): Promise<Array<allBlockExrinisics> | []> => {
+
+  if(blockExtrinsicsCache[blockNumber]){
+    return blockExtrinsicsCache[blockNumber]
+  }
+  // Clear cache
+  blockExtrinsicsCache = {}
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
   substrate_extrinsic (where:{blockNumber:{_eq:${blockNumber}}}){
@@ -151,6 +174,8 @@ let data = JSON.stringify({
   variables: {}
 });
 
-return await axiosPOSTRequest(data).then(
+blockExtrinsicsCache[blockNumber] = await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_extrinsic)
+
+return blockExtrinsicsCache[blockNumber]
 }
