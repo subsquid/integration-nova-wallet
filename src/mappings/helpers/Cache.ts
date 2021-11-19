@@ -8,6 +8,15 @@ import { apiService , allAccounts} from '../helpers/api';
 let rewardDestinationByAddress: {[blockId: string]: {[address: string]: RewardDestination}} = {}
 let controllersByStash: {[blockId: string]: {[address: string]: string}} = {}
 
+/**
+ * Caches reward destination for addresses in the block
+ * While creating the bond, one can specify the controller and
+ * stash. The stash address where the rewards are paid out can be
+ * obtained from payee storage function
+ * @param accountAddress 
+ * @param event 
+ * @param block
+ */
 export async function cachedRewardDestination(
     accountAddress: string,
     event: SubstrateEvent,
@@ -54,6 +63,12 @@ export async function cachedRewardDestination(
     }
 }
 
+/**
+ * Cache controller addresses for stash address 
+ * @param accountAddress 
+ * @param event 
+ * @param block
+ */
 export async function cachedController(
     accountAddress: string,
     event: SubstrateEvent,
