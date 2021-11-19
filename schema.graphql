@@ -27,7 +27,7 @@ type AccountHistory @entity {
 
 union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem
 
-type RewardItem {
+type Reward {
   eventIdx: Int!
   amount: BigInt!
   era: Int
@@ -35,7 +35,7 @@ type RewardItem {
   validator: String
 }
 
-type ExtrinsicItem {
+type Extrinsic {
   hash: String!
   module: String!
   call: String!
@@ -47,12 +47,18 @@ type TransferItem {
   transfer: Transfer!
 }
 
+type RewardItem {
+  reward: Reward!
+}
+
+type ExtrinsicItem {
+  extrinsic: Extrinsic!
+}
 
 type AccumulatedReward @entity {
   id: ID! #address
   amount: BigInt!
 }
-
 
 type EraValidatorInfo @entity {
   id: ID!

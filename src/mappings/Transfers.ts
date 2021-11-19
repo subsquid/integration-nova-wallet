@@ -92,6 +92,7 @@ async function populateTransfer(
   transfer.success=true;
   transfer.id=event.id
   await store.save(transfer);
+
   element.item = new TransferItem({
     transfer: transfer.id
   })

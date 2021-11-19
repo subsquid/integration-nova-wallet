@@ -33,18 +33,18 @@ mappings:
       handler: handleBalanceDeposit
     - event: treasury.Deposit
       handler: handleTreasuryDeposit
-    # - event: staking.Reward
-    #   handler: handleReward
-    #   filter:
-    #     specVersion: '[1050, )'
-    # - event: staking.Rewarded
-    #   handler: handleRewarded
-    #   filter:
-    #     specVersion: '[1050, )'
-    # - event: staking.Slash
-    #   handler: handleSlash
-    # - event: staking.Slashed
-    #   handler: handleSlashed
+    - event: staking.Reward
+      handler: handleReward
+      filter:
+        specVersion: '[1050, )'
+    - event: staking.Rewarded
+      handler: handleRewarded
+      filter:
+        specVersion: '[1050, )'
+    - event: staking.Slash
+      handler: handleSlash
+    - event: staking.Slashed
+      handler: handleSlashed
     - event : staking.StakingElection
       handler: handleNewEra
     - event: staking.StakersElected

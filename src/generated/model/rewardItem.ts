@@ -1,75 +1,31 @@
 import assert from "assert"
 import * as marshal from "../marshal"
+import {Reward} from "./reward"
 
 export class RewardItem {
   public readonly isTypeOf = 'RewardItem'
-  private _eventIdx!: number
-  private _amount!: bigint
-  private _era!: number | undefined | null
-  private _stash!: string | undefined | null
-  private _validator!: string | undefined | null
+  private _reward!: Reward
 
   constructor(props?: Partial<Omit<RewardItem, 'toJSON'>>, json?: any) {
     Object.assign(this, props)
     if (json != null) {
-      this._eventIdx = marshal.int.fromJSON(json.eventIdx)
-      this._amount = marshal.bigint.fromJSON(json.amount)
-      this._era = json.era == null ? undefined : marshal.int.fromJSON(json.era)
-      this._stash = json.stash == null ? undefined : marshal.string.fromJSON(json.stash)
-      this._validator = json.validator == null ? undefined : marshal.string.fromJSON(json.validator)
+      this._reward = new Reward(undefined, marshal.nonNull(json.reward))
     }
   }
 
-  get eventIdx(): number {
-    assert(this._eventIdx != null, 'uninitialized access')
-    return this._eventIdx
+  get reward(): Reward {
+    assert(this._reward != null, 'uninitialized access')
+    return this._reward
   }
 
-  set eventIdx(value: number) {
-    this._eventIdx = value
-  }
-
-  get amount(): bigint {
-    assert(this._amount != null, 'uninitialized access')
-    return this._amount
-  }
-
-  set amount(value: bigint) {
-    this._amount = value
-  }
-
-  get era(): number | undefined | null {
-    return this._era
-  }
-
-  set era(value: number | undefined | null) {
-    this._era = value
-  }
-
-  get stash(): string | undefined | null {
-    return this._stash
-  }
-
-  set stash(value: string | undefined | null) {
-    this._stash = value
-  }
-
-  get validator(): string | undefined | null {
-    return this._validator
-  }
-
-  set validator(value: string | undefined | null) {
-    this._validator = value
+  set reward(value: Reward) {
+    this._reward = value
   }
 
   toJSON(): object {
     return {
       isTypeOf: this.isTypeOf,
-      eventIdx: this.eventIdx,
-      amount: marshal.bigint.toJSON(this.amount),
-      era: this.era,
-      stash: this.stash,
-      validator: this.validator,
+      reward: this.reward.toJSON(),
     }
   }
 }

@@ -1,47 +1,48 @@
-// import {DatabaseManager,ExtrinsicContext, StoreContext, SubstrateExtrinsic, SubstrateBlock} from '@subsquid/hydra-common'
-// import {Extrinsic, HistoryElement, Transfer} from "../generated/model";
-// import {
-//     calculateFeeAsString,
-//     extrinsicIdFromBlockAndIdx,
-//     timestamp
-// } from "./helpers/common";
-// import {CallBase} from "@polkadot/types/types/calls";
-// import {AnyTuple} from "@polkadot/types/types/codec";
-// import {u64} from "@polkadot/types";
-// import { allBlockExtrinsics } from './helpers/api';
+import {DatabaseManager,ExtrinsicContext, StoreContext, SubstrateExtrinsic, SubstrateBlock} from '@subsquid/hydra-common'
+import {Extrinsic, AccountHistory, Transfer, ExtrinsicItem} from "../generated/model";
+import {
+    calculateFeeAsString,
+    extrinsicIdFromBlockAndIdx,
+    timestamp,
+    timestampToDate
+} from "./helpers/common";
+import {CallBase} from "@polkadot/types/types/calls";
+import {AnyTuple} from "@polkadot/types/types/codec";
+import {u64} from "@polkadot/types";
+import { allBlockExtrinsics } from './helpers/api';
 
-// export async function handleHistoryElement({
-//     store,
-//     event,
-//     block,
-//     extrinsic,
-//   }: ExtrinsicContext & StoreContext): Promise<void> {
+export async function handleHistoryElement({
+    store,
+    event,
+    block,
+    extrinsic,
+  }: ExtrinsicContext & StoreContext): Promise<void> {
 
-//     const blockExtrinsic = await allBlockExtrinsics(block.height);
+    const blockExtrinsic = await allBlockExtrinsics(block.height);
 
-//     blockExtrinsic.map((extrinisic) => {
-//       processExtrinisic(
-//         extrinisic as SubstrateExtrinsic,
-//         block,
-//         store
-//       )
-//     })
-// }
+    blockExtrinsic.map((extrinisic) => {
+      processExtrinisic(
+        extrinisic as SubstrateExtrinsic,
+        block,
+        store
+      )
+    })
+}
 
-// async function processExtrinisic(
-//   extrinsic: SubstrateExtrinsic,
-//   block: SubstrateBlock,
-//   store: DatabaseManager){
-//   const isSigned  = extrinsic.signature;
-//   if (isSigned) {
-//       let failedTransfers = findFailedTransferCalls(extrinsic, block)
-//       if (failedTransfers != null) {
-//           await saveFailedTransfers(failedTransfers, extrinsic, block, store)
-//       } else {
-//           await saveExtrinsic(extrinsic, block, store)
-//       }
-//   }
-// }
+async function processExtrinisic(
+  extrinsic: SubstrateExtrinsic,
+  block: SubstrateBlock,
+  store: DatabaseManager){
+  const isSigned  = extrinsic.signature;
+  if (isSigned) {
+      let failedTransfers = findFailedTransferCalls(extrinsic, block)
+      if (failedTransfers != null) {
+          await saveFailedTransfers(failedTransfers, extrinsic, block, store)
+      } else {
+          await saveExtrinsic(extrinsic, block, store)
+      }
+  }
+}
 
 
 // async function saveFailedTransfers(
@@ -81,32 +82,51 @@
 //   await Promise.allSettled(promises)
 // }
 
-// async function saveExtrinsic(
-//   extrinsic: SubstrateExtrinsic,
-//   block: SubstrateBlock,
-//   store: DatabaseManager
-//   ): Promise<void> {
-//   let blockNumber = block.height;
-//   let extrinsicIdx = extrinsic.id
-//   let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx)
+async function saveExtrinsic(
+  extrinsic: SubstrateExtrinsic,
+  block: SubstrateBlock,
+  store: DatabaseManager
+  ): Promise<void> {
+  let blockNumber = block.height;
+  let extrinsicIdx = extrinsic.id
+  let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx)
 
-//   const element = new HistoryElement({
-//     id: extrinsicId
-//   });
-//   element.address = extrinsic.signer.toString()
-//   element.blockNumber = blockNumber
-//   element.extrinsicHash = extrinsic.hash
-//   element.timestamp = timestamp(block)
-//   element.extrinsic = new Extrinsic({
+  const element = new AccountHistory({
+    id: extrinsicId
+  });
+  element.address = extrinsic.signer.toString()
+  element.blockNumber = blockNumber
+  element.extrinsicHash = extrinsic.hash
+  element.timestamp = timestampToDate(block)
+  element.item =  new ExtrinsicItem({
+    extrinsic: new Extrinsic({
+              hash: extrinsic.hash,
+              module: extrinsic.section,
+              call: extrinsic.method,
+              success: true, // extrinsic.success //recheck this
+            //   fee: extrinsic.tip
+              fee: calculateFeeAsString(extrinsic, false) as bigint
+          })
+})
+  
+//   new Extrinsic({
 //       hash: extrinsic.hash,
 //       module: extrinsic.section,
 //       call: extrinsic.method,
 //       success: true, // extrinsic.success //recheck this
-//       fee: calculateFeeAsString(extrinsic)
+//       fee: calculateFeeAsString(extrinsic, false) as bigint
 //   })
-//   await store.save(element)
-// }
+  await store.save(element)
+}
 
+
+function saveFailedTransfers(failedTransfers: any, extrinsic: SubstrateExtrinsic, block: SubstrateBlock, store: DatabaseManager) {
+    throw new Error('Function not implemented.');
+}
+
+function findFailedTransferCalls(extrinsic: SubstrateExtrinsic, block: SubstrateBlock) {
+    throw new Error('Function not implemented.');
+}
 // /// Success Transfer emits Transfer event that is handled at Transfers.ts handleTransfer()
 // function findFailedTransferCalls(
 //   extrinsic: SubstrateExtrinsic,
