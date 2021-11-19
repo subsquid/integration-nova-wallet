@@ -24,31 +24,22 @@ export async function cachedRewardDestination(
         
         let method = event.method
         let section = event.section || event?.name.split('.')?.[0]
-
-        // const allAccountsInBlock = block.events
-        //     .filter(blockEvent => { 
-        //         return blockEvent.event.method == method && blockEvent.event.section == section
-        //     })
-        //     .map(event => { 
-        //         let {event: {data: [accountId, ]}} = event
-        //         return accountId
-        //     });
         const allAccountsInBlock:any = await allAccounts(block.height, method, section)
 
         // looks like accountAddress not related to events so just try to query payee directly
         if (allAccountsInBlock?.length === 0) {
             rewardDestinationByAddress[blockId] = {}
-            return await api.query.staking.payee(accountAddress)
+            return await api.query.staking.payee.at(block.hash,accountAddress)
         }
 
-        const payees = await api.query.staking.payee.multi(allAccountsInBlock);
+        const payees = await (await api.at(block.hash)).query.staking.payee.multi(allAccountsInBlock);
         const rewardDestinations = payees.map((payee:any) => { return payee as RewardDestination });
         
         let destinationByAddress: {[address: string]: RewardDestination} = {}
         
         // something went wrong, so just query for single accountAddress
         if (rewardDestinations?.length !== allAccountsInBlock?.length) {
-            const payee = await api.query.staking.payee(accountAddress)
+            const payee = await api.query.staking.payee.at(block.hash,accountAddress)
             destinationByAddress[accountAddress] = payee
             rewardDestinationByAddress[blockId] = destinationByAddress
             return payee
@@ -82,16 +73,7 @@ export async function cachedController(
 
         const allAccountsInBlock:any = await allAccounts(block.height, method, section || '')
 
-        // const allAccountsInBlock = block.events
-        //     .filter(blockEvent => { 
-        //         return blockEvent.event.method == method && blockEvent.event.section == section
-        //     })
-        //     .map(event => { 
-        //         let {event: {data: [accountId, ]}} = event
-        //         return accountId
-        //     });
-
-        var controllerNeedAccounts: AccountId[] = []
+        let controllerNeedAccounts: AccountId[] = []
 
         for (let accountId of allAccountsInBlock) {
             const rewardDestination = await cachedRewardDestination(accountId.toString(), event, block)
@@ -104,18 +86,18 @@ export async function cachedController(
         // looks like accountAddress not related to events so just try to query controller directly
         if (controllerNeedAccounts?.length === 0) {
             controllersByStash[blockId] = {}
-            let accountId = await api.query.staking.bonded(accountAddress)
+            let accountId = await api.query.staking.bonded.at(block.hash,accountAddress)
             return accountId.toString()
         }
 
-        const bonded = await api.query.staking.bonded.multi(controllerNeedAccounts);
+        const bonded = await (await api.at(block.hash)).query.staking.bonded.multi(controllerNeedAccounts);
         const controllers = bonded.map(bonded => { return bonded.toString() });
         
         let bondedByAddress: {[address: string]: string} = {}
         
         // something went wrong, so just query for single accountAddress
         if (controllers?.length !== controllerNeedAccounts?.length) {
-            const controller = await api.query.staking.bonded(accountAddress)
+            const controller = await api.query.staking.bonded.at(block.hash,accountAddress)
             let controllerAddress = controller.toString()
             bondedByAddress[accountAddress] = controllerAddress
             controllersByStash[blockId] = bondedByAddress
