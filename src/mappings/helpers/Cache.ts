@@ -8,6 +8,9 @@ import { apiService , allAccounts} from '../helpers/api';
 let rewardDestinationByAddress: {[blockId: string]: {[address: string]: RewardDestination}} = {}
 let controllersByStash: {[blockId: string]: {[address: string]: string}} = {}
 
+// @todo improve cache logic, Check whether only need to cache the current block only
+// could remove previous cache of other blocks
+
 /**
  * Caches reward destination for addresses in the block
  * While creating the bond, one can specify the controller and
@@ -41,7 +44,8 @@ export async function cachedRewardDestination(
             return await api.query.staking.payee.at(block.hash,accountAddress)
         }
 
-        const payees = await (await api.at(block.hash)).query.staking.payee.multi(allAccountsInBlock);
+        // Recheck this, may need to call from a specific block with at
+        const payees = await api.query.staking.payee.multi(allAccountsInBlock);
         const rewardDestinations = payees.map((payee:any) => { return payee as RewardDestination });
         
         let destinationByAddress: {[address: string]: RewardDestination} = {}
@@ -104,8 +108,8 @@ export async function cachedController(
             let accountId = await api.query.staking.bonded.at(block.hash,accountAddress)
             return accountId.toString()
         }
-
-        const bonded = await (await api.at(block.hash)).query.staking.bonded.multi(controllerNeedAccounts);
+        // Recheck this, may need to call from a specific block with at
+        const bonded = await api.query.staking.bonded.multi(controllerNeedAccounts);
         const controllers = bonded.map(bonded => { return bonded.toString() });
         
         let bondedByAddress: {[address: string]: string} = {}
