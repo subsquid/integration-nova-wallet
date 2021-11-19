@@ -8,9 +8,6 @@ import { apiService , allAccounts} from '../helpers/api';
 let rewardDestinationByAddress: {[blockId: string]: {[address: string]: RewardDestination}} = {}
 let controllersByStash: {[blockId: string]: {[address: string]: string}} = {}
 
-// @todo improve cache logic, Check whether only need to cache the current block only
-// could remove previous cache of other blocks
-
 /**
  * Caches reward destination for addresses in the block
  * While creating the bond, one can specify the controller and

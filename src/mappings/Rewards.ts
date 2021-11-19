@@ -13,22 +13,22 @@ import { Balance } from "@polkadot/types/interfaces";
 import { handleRewardRestakeForAnalytics, handleSlashForAnalytics } from "./StakeChanged"
 import { cachedRewardDestination, cachedController } from "./helpers/Cache"
 import { Staking } from '../types';
-import { allBlockEvents, allBlockExrinisics, allBlockExtrinsics, apiService } from './helpers/api';
+import { allBlockEvents, allBlockExtrinisics, allBlockExtrinsics, apiService } from './helpers/api';
 
-function isPayoutStakers(call: allBlockExrinisics): boolean {
+function isPayoutStakers(call: allBlockExtrinisics): boolean {
     return call.method == "payoutStakers"
 }
 
-function isPayoutValidator(call: allBlockExrinisics): boolean {
+function isPayoutValidator(call: allBlockExtrinisics): boolean {
     return call.method == "payoutValidator"
 }
 
-function extractArgsFromPayoutStakers(call: allBlockExrinisics): [string, number] {
+function extractArgsFromPayoutStakers(call: allBlockExtrinisics): [string, number] {
     const { validator_stash, era } = new Staking.Payout_stakersCall(call as SubstrateExtrinsic)
     return [validator_stash.toString(), era.toNumber()]
 }
 
-function extractArgsFromPayoutValidator(call: allBlockExrinisics, sender: string): [string, number] {
+function extractArgsFromPayoutValidator(call: allBlockExtrinisics, sender: string): [string, number] {
     const { era } = new Staking.Payout_validatorCall(call as SubstrateExtrinsic)
 
     return [sender, era.toNumber()]
@@ -100,7 +100,7 @@ let  element: Array<AccountHistory> | AccountHistory = await store.find(AccountH
 
     // Find all the rewards destinations , amounts
     let payoutCallsArgs = blockExtrinsic
-        .map((extrinsic: allBlockExrinisics) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
+        .map((extrinsic: allBlockExtrinisics) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
         .filter((args: any) => args.length != 0)
         .flat()
 
@@ -178,7 +178,7 @@ let  element: Array<AccountHistory> | AccountHistory = await store.find(AccountH
  * @param extrinsic 
  * @param sender
  */
-function determinePayoutCallsArgs(extrinsic: allBlockExrinisics, sender: string): [string, number][] {
+function determinePayoutCallsArgs(extrinsic: allBlockExtrinisics, sender: string): [string, number][] {
     if (isPayoutStakers(extrinsic)) {
         return [extractArgsFromPayoutStakers(extrinsic)]
     } else if (isPayoutValidator(extrinsic)) {

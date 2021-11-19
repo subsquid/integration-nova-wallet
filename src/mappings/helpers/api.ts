@@ -8,7 +8,7 @@ axiosRetry(axios, { retries: API_RETRIES, retryDelay: axiosRetry.exponentialDela
 let api: ApiPromise | undefined
 
 let blockEventsCache: {[blockNumber:number]: Array<allBlockEvents>} = {}
-let blockExtrinsicsCache: {[blockNumber:number]: Array<allBlockExrinisics>} = {}
+let blockExtrinsicsCache: {[blockNumber:number]: Array<allBlockExtrinisics>} = {}
 let accountsCache: any = {}
 
 export interface allBlockEvents {
@@ -24,12 +24,19 @@ export interface allBlockEvents {
   blockTimestamp: any;
 }
 
-export interface allBlockExrinisics {
+export interface allBlockExtrinisics {
   section : string;
   method: string;
   id: string;
   signer: string;
   args :any;
+  indexInBlock: number;
+  tip: bigint;
+  signature:string;
+  hash: string;
+  event :{
+    name: string
+  };
  
 }
 
@@ -150,7 +157,7 @@ return blockEventsCache[blockNumber]
  */
 export const allBlockExtrinsics = async (
     blockNumber : number
-): Promise<Array<allBlockExrinisics> | []> => {
+): Promise<Array<allBlockExtrinisics> | []> => {
 
   if(blockExtrinsicsCache[blockNumber]){
     return blockExtrinsicsCache[blockNumber]
@@ -166,6 +173,13 @@ const query =`query MyQuery {
     id
     args
     hash
+    indexInBlock
+    tip
+    signature
+    hash
+    event {
+      name
+    }
   }
 }
 `
