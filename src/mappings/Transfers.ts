@@ -11,7 +11,6 @@ import {
 import {
   blockNumber,
   eventId,
-  timestamp,
   timestampToDate,
 } from "./helpers/common";
 import { getOrCreate } from "./helpers/helpers";
@@ -96,6 +95,5 @@ async function populateTransfer(
   element.item = new TransferItem({
     transfer: transfer.id
   })
-  transfer
   await store.save(element);
 }
