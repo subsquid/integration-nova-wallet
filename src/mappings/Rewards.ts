@@ -18,6 +18,7 @@ import { handleRewardRestakeForAnalytics, handleSlashForAnalytics } from "./Stak
 import { cachedRewardDestination, cachedController } from "./helpers/Cache"
 import { Staking } from '../types';
 import { allBlockEvents, allBlockExrinisics, allBlockExtrinsics, apiService } from './helpers/api';
+import { getOrCreate } from './helpers/helpers';
 
 function isPayoutStakers(call: allBlockExrinisics): boolean {
     return call.method == "payoutStakers"
@@ -73,7 +74,7 @@ export async function handleReward({
     await updateAccumulatedReward(
         store,
         event,
-        true)
+        true, Staking.RewardedEvent)
 }
 
 async function handleRewardForTxHistory({
@@ -82,15 +83,23 @@ async function handleRewardForTxHistory({
     block,
     extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-    const element = await store.find(AccountHistory, // recheck
-        {
-            where: { id: eventId(event) }
-        });
+
+    const [accountId, amount] = new Staking.RewardedEvent(event).params;
+    // let element = await store.find(AccountHistory, // recheck
+    //     {
+    //         where: { id: eventId(event) }
+    //     }) as any;
+
+    const element = await getOrCreate(
+            store,
+            AccountHistory,
+            eventId(event)
+          );
     // recheck
-    if (element.length !== 0) {
-        // already processed reward previously
-        return;
-    }
+    // if (element.length !== 0) {
+    //     // already processed reward previously
+    //     return;
+    // }
 
     const blockExtrinsic = await allBlockExtrinsics(block.height);
     let payoutCallsArgs = blockExtrinsic
@@ -129,6 +138,7 @@ async function handleRewardForTxHistory({
     }
 
     await buildRewardEvents(
+        element,
         block,
         extrinsic,
         store,
@@ -220,7 +230,7 @@ export async function handleSlash({
         block,
         extrinsic,
     })
-    await updateAccumulatedReward(store, event, false)
+    await updateAccumulatedReward(store, event, false, Staking.SlashedEvent)
 }
 
 async function handleSlashForTxHistory({
@@ -229,15 +239,21 @@ async function handleSlashForTxHistory({
     block,
     extrinsic,
 }: EventContext & StoreContext): Promise<void> {
-    const element = await store.find(AccountHistory, // recheck
-        {
-            where: { id: eventId(event) }
-        });
+    // const element = await store.find(AccountHistory, // recheck
+    //     {
+    //         where: { id: eventId(event) }
+    //     });
     // recheck
-    if (element.length !== 0) {
-        // already processed reward previously
-        return;
-    }
+    // if (element.length !== 0) {
+    //     // already processed reward previously
+    //     return;
+    // }
+    const element = await getOrCreate(
+        store,
+        AccountHistory,
+        eventId(event)
+      );
+
     const api = await apiService()
 
     const currentEra = (await api.query.staking.currentEra()).unwrap()
@@ -258,6 +274,7 @@ async function handleSlashForTxHistory({
     const initialValidator: string = ""
 
     await buildRewardEvents(
+        element,
         block,
         extrinsic,
         store,
@@ -282,6 +299,7 @@ async function handleSlashForTxHistory({
 }
 
 async function buildRewardEvents<A>(
+    element: AccountHistory,
     block: SubstrateBlock,
     extrinsic: SubstrateExtrinsic | undefined,
     store: DatabaseManager,
@@ -307,9 +325,9 @@ async function buildRewardEvents<A>(
 
             const eventId = eventIdFromBlockAndIdx(blockNumber.toString(), eventIndex.toString())
 
-            const element = new AccountHistory({
-                id: eventId
-            });
+            // const element = new AccountHistory({
+            //     id: eventId
+            // });
 
             // element.timestamp = blockTimestamp
             element.timestamp = timestampToDate(block)
@@ -335,9 +353,8 @@ async function buildRewardEvents<A>(
     await Promise.allSettled(savingPromises);
 }
 
-async function updateAccumulatedReward(store: DatabaseManager, event: SubstrateEvent, isReward: boolean): Promise<void> {
-    const [accountId, amount] = isReward ? new Staking.RewardedEvent(event).params
-        : new Staking.SlashedEvent(event).params;
+async function updateAccumulatedReward(store: DatabaseManager, event: SubstrateEvent, isReward: boolean, functionName: any): Promise<void> {
+    const [accountId, amount] = new functionName(event).params
 
     let accountAddress = accountId.toString()
 

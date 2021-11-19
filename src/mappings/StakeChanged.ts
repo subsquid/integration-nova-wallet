@@ -113,7 +113,7 @@ export async function handleRewardRestakeForAnalytics({
         let amountBalance = amount.toBigInt()
         let accumulatedAmount = await handleAccumulatedStake(accountAddress, amountBalance, store)
 
-        const element =await getOrCreate(
+        const element = await getOrCreate(
           store,
           StakeChange,
           eventId(event)

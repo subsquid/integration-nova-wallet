@@ -25,34 +25,34 @@ typegen:
 mappings:
   mappingsModule: lib/mappings
   eventHandlers:
-    - event: balances.Transfer
-      handler: handleTransfer
-    - event: balances.transfer_keep_alive
-      handler: handleTransfer
-    - event: balances.Deposit
-      handler: handleBalanceDeposit
-    - event: treasury.Deposit
-      handler: handleTreasuryDeposit
+    # - event: balances.Transfer
+    #   handler: handleTransfer
+    # - event: balances.transfer_keep_alive
+    #   handler: handleTransfer
+    # - event: balances.Deposit
+    #   handler: handleBalanceDeposit
+    # - event: treasury.Deposit
+      # handler: handleTreasuryDeposit
     - event: staking.Reward
       handler: handleReward
       filter:
         specVersion: '[1050, )'
-    - event: staking.Rewarded
-      handler: handleRewarded
-      filter:
-        specVersion: '[1050, )'
-    - event: staking.Slash
-      handler: handleSlash
-    - event: staking.Slashed
-      handler: handleSlashed
-    - event : staking.StakingElection
-      handler: handleNewEra
-    - event: staking.StakersElected
-      handler: handleStakersElected
-    - event: staking.Bonded
-      handler: handleBonded
-    - event: staking.Unbonded
-      handler: handleUnbonded
+    # - event: staking.Rewarded
+    #   handler: handleRewarded
+    #   filter:
+    #     specVersion: '[1050, )'
+    # - event: staking.Slash
+    #   handler: handleSlash
+    # - event: staking.Slashed
+    #   handler: handleSlashed
+    # - event : staking.StakingElection
+    #   handler: handleNewEra
+    # - event: staking.StakersElected
+    #   handler: handleStakersElected
+    # - event: staking.Bonded
+    #   handler: handleBonded
+    # - event: staking.Unbonded
+    #   handler: handleUnbonded
   extrinsicHandlers:
   preBlockHooks:
   postBlockHooks:
@@ -62,6 +62,6 @@ mappings:
   # range: '[27572,]'
   # range: '[2944530,]' #lots of events
   # range: '[9950369,]' # rewards
-  # range: '[8945230,]' # rewards
+  range: '[8945230,]' # rewards
 
 
