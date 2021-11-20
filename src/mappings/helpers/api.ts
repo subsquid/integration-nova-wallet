@@ -167,7 +167,7 @@ export const allBlockExtrinsics = async (
   blockExtrinsicsCache = {}
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
-  substrate_extrinsic (where:{blockNumber:{_eq:${blockNumber}}}){
+  substrate_extrinsic(where:{blockNumber:{_eq:${blockNumber}}}){
     section
     signer
     method
@@ -178,7 +178,7 @@ const query =`query MyQuery {
     tip
     signature
     hash
-    event {
+    event{
       name
     }
   }
