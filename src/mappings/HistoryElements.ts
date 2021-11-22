@@ -5,10 +5,10 @@ import {
     calculateFeeAsString,
     extrinsicIdFromBlockAndIdx, isBatch, isProxy,
     isTransfer,
-    timestampToDate
+    timestampToDate,
 } from "./helpers/common";
 import {u64} from "@polkadot/types";
-import { getOrCreate } from './helpers/helpers';
+import { getOrCreate, get } from './helpers/helpers';
 import { allBlockExtrinisics, allBlockExtrinsics } from './helpers/api';
 
 export async function handleHistoryElement({
@@ -42,6 +42,7 @@ async function saveFailedTransfers(
     block: SubstrateBlock,
     store: DatabaseManager): Promise<void> {
     let promises = transfers.map(async transfer => {
+        await store.save(transfer)
         let extrinsicHash = extrinsic.hash;
         let blockNumber = block.height
         let extrinsicIdx = extrinsic.id
@@ -77,6 +78,15 @@ async function saveExtrinsic(extrinsic: allBlockExtrinisics, block : SubstrateBl
     let blockNumber = block.height;
     let extrinsicIdx = extrinsic.id
     let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx)
+    let checkIfPresent = await get(
+        store,
+        AccountHistory,
+        extrinsicId
+    )
+if(checkIfPresent?.id){
+    // already processed
+    return
+}
 
     const element = new AccountHistory({
       id: extrinsicId
@@ -84,7 +94,7 @@ async function saveExtrinsic(extrinsic: allBlockExtrinisics, block : SubstrateBl
     element.address = extrinsic.signer.toString()
     element.blockNumber = blockNumber
     element.extrinsicHash = extrinsic.hash
-    element.extrinsicIdx = extrinsicIdx
+    element.extrinsicIdx = extrinsicId
     element.timestamp = timestampToDate(block)
     const success = extrinsic.event.name === 'system.ExtrinsicFailed'? false : true
     extrinsic.tip = BigInt(extrinsic.tip)
@@ -94,7 +104,7 @@ async function saveExtrinsic(extrinsic: allBlockExtrinisics, block : SubstrateBl
         module: extrinsic.section,
         call: extrinsic.method,
         success: success, // recheck this
-        fee: BigInt(calculateFeeAsString(extrinsic as SubstrateExtrinsic))
+        fee: BigInt(await calculateFeeAsString(extrinsic as SubstrateExtrinsic))
     })
     element.item = new ExtrinsicItem( {
       extrinsic: newExtrinsic
@@ -126,7 +136,7 @@ async function findFailedTransferCalls(
     feesPaid.blockProducerAddress = feesPaid.blockProducerAddress || ''
     await store.save(feesPaid);
     return transferCallsArgs.map(tuple => {
-        return {
+        return new Transfer({
             extrinisicIdx: extrinsic.id,
             amount: tuple[1].toString(),
             from: sender.toString(),
@@ -134,8 +144,8 @@ async function findFailedTransferCalls(
             fee: feesPaid,
             eventIdx: '-1',
             success: false,
-            id: ''
-        }
+            id: `${extrinsic.event.id}-failed`
+        })
     })
 }
 
