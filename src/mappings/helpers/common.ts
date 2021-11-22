@@ -4,7 +4,7 @@ import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types/types/codec";
 import { Vec } from '@polkadot/types';
 import { encodeAddress } from "@polkadot/util-crypto";
-import { allBlockExrinisics } from './api';
+import { allBlockExtrinisics } from './api';
 const batchCalls = ["batch", "batchAll"]
 const transferCalls = ["transfer", "transferKeepAlive"]
 
@@ -15,24 +15,24 @@ const transferCalls = ["transfer", "transferKeepAlive"]
 export function convertAddressToSubstrate(address: string) : string {
     return encodeAddress(address, 42);
 }
-export function isBatch(call:allBlockExrinisics) : boolean {
+export function isBatch(call:allBlockExtrinisics) : boolean {
     return call.section == "utility" && batchCalls.includes(call.method)
 }
 
-export function isProxy(call:allBlockExrinisics) : boolean {
+export function isProxy(call:allBlockExtrinisics) : boolean {
     return call.section == "proxy" && call.method == "proxy"
 }
 
-export function isTransfer(call:SubstrateExtrinsic) : boolean {
+export function isTransfer(call:allBlockExtrinisics) : boolean {
     return call.section == "balances" && transferCalls.includes(call.method)
 }
 
-export function callsFromBatch(batchCall:allBlockExrinisics){
+export function callsFromBatch(batchCall:allBlockExtrinisics){
     let calls:any = batchCall.args[0]
     return calls.value
 }
 
-export function callFromProxy(proxyCall:allBlockExrinisics) {
+export function callFromProxy(proxyCall:allBlockExtrinisics) {
     // return proxyCall.args[2] as SubstrateExtrinsic
     return proxyCall.args[2]
 }
