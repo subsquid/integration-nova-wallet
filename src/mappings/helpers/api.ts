@@ -35,7 +35,8 @@ export interface allBlockExtrinisics {
   signature:string;
   hash: string;
   event :{
-    name: string
+    name: string;
+    id: string
   };
  
 }
@@ -180,6 +181,7 @@ const query =`query MyQuery {
     hash
     event{
       name
+      id
     }
   }
 }
