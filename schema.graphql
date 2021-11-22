@@ -11,7 +11,7 @@ type Transfer @entity{
   from: String!
   fee: FeesPaid!
   eventIdx: String!
-  extrinisicIdx: String! @unique
+  extrinisicIdx: String!
   success: Boolean!
 }
 
