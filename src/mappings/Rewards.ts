@@ -1,11 +1,7 @@
 import { AccumulatedReward, Reward, AccountHistory, RewardItem } from '../generated/model';
 import { DatabaseManager, EventContext, StoreContext, SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from "@subsquid/hydra-common";
 import {
-    callsFromBatch,
-    isBatch,
     eventId,
-    isProxy,
-    callFromProxy,
     eventIdFromBlockAndIdx,
     timestampToDate
 } from "./helpers/common";
@@ -13,26 +9,7 @@ import { Balance } from "@polkadot/types/interfaces";
 import { handleRewardRestakeForAnalytics, handleSlashForAnalytics } from "./StakeChanged"
 import { cachedRewardDestination, cachedController } from "./helpers/Cache"
 import { Staking } from '../types';
-import { allBlockEvents, allBlockExtrinisics, allBlockExtrinsics, apiService } from './helpers/api';
-
-function isPayoutStakers(call: allBlockExtrinisics): boolean {
-    return call.method == "payoutStakers"
-}
-
-function isPayoutValidator(call: allBlockExtrinisics): boolean {
-    return call.method == "payoutValidator"
-}
-
-function extractArgsFromPayoutStakers(call: allBlockExtrinisics): [string, number] {
-    const { validator_stash, era } = new Staking.Payout_stakersCall(call as SubstrateExtrinsic)
-    return [validator_stash.toString(), era.toNumber()]
-}
-
-function extractArgsFromPayoutValidator(call: allBlockExtrinisics, sender: string): [string, number] {
-    const { era } = new Staking.Payout_validatorCall(call as SubstrateExtrinsic)
-
-    return [sender, era.toNumber()]
-}
+import { allBlockEvents,  apiService } from './helpers/api';
 
 export async function handleRewarded({
     store,
