@@ -1,6 +1,6 @@
 import {create} from './_registry'
 import {AccountId32} from '@polkadot/types/interfaces'
-import {u128, u32} from '@polkadot/types'
+import {u128, u32, Vec} from '@polkadot/types'
 import {SubstrateEvent, SubstrateExtrinsic} from '@subsquid/hydra-common'
 
 export namespace Staking {
@@ -112,5 +112,20 @@ export namespace Staking {
     get era(): u32 {
       return create('u32', this._extrinsic.args[0].value)
     }
+  }
+
+
+  export class Payout_nominatorCall {
+    private _extrinsic: SubstrateExtrinsic
+
+    constructor(extrinsic: SubstrateExtrinsic) {
+      this._extrinsic = extrinsic
+    }
+    get era(): u32 {
+      return create('u32', this._extrinsic.args[0].value)
+    }
+    // get validator(): 	Vec<(AccountId32, u32)> {
+    //   return create('Vec<(AccountId32, u32)>', this._extrinsic.args[0].value)
+    // }
   }
 }

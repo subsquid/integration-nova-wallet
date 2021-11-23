@@ -2,7 +2,7 @@ import assert from "assert"
 import * as marshal from "../marshal"
 
 export class Reward {
-  private _eventIdx!: number
+  private _eventIdx!: string
   private _amount!: bigint
   private _era!: number | undefined | null
   private _stash!: string | undefined | null
@@ -11,7 +11,7 @@ export class Reward {
   constructor(props?: Partial<Omit<Reward, 'toJSON'>>, json?: any) {
     Object.assign(this, props)
     if (json != null) {
-      this._eventIdx = marshal.int.fromJSON(json.eventIdx)
+      this._eventIdx = marshal.string.fromJSON(json.eventIdx)
       this._amount = marshal.bigint.fromJSON(json.amount)
       this._era = json.era == null ? undefined : marshal.int.fromJSON(json.era)
       this._stash = json.stash == null ? undefined : marshal.string.fromJSON(json.stash)
@@ -19,12 +19,12 @@ export class Reward {
     }
   }
 
-  get eventIdx(): number {
+  get eventIdx(): string {
     assert(this._eventIdx != null, 'uninitialized access')
     return this._eventIdx
   }
 
-  set eventIdx(value: number) {
+  set eventIdx(value: string) {
     this._eventIdx = value
   }
 

@@ -28,7 +28,7 @@ type AccountHistory @entity {
 union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem
 
 type Reward {
-  eventIdx: Int!
+  eventIdx: String!
   amount: BigInt!
   era: Int
   stash: String

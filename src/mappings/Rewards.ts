@@ -63,7 +63,7 @@ export async function handleReward({
         extrinsic,
     })
 
-    await handleRewardForTxHistory({
+    await handleAccountRewardTxHistory({
         store,
         event,
         block,
@@ -77,128 +77,69 @@ export async function handleReward({
         true);
 }
 
-async function handleRewardForTxHistory({
+
+
+async function handleAccountRewardTxHistory({
     store,
     event,
     block,
     extrinsic,
 }: EventContext & StoreContext): Promise<void> {
 
-let  element: Array<AccountHistory> | AccountHistory = await store.find(AccountHistory, // recheck
-        {
-            where: { id: eventId(event) }
-        });
-    if (element.length !== 0) {
-        // already processed reward previously
-        return;
-    }
-     element = new AccountHistory({
+  const [account, amount] = new Staking.RewardedEvent(event).params
+  const accountAddress = account.toString()
+
+  let  element = new AccountHistory({
          id:  eventId(event)
      });
+ let validator = "", stash ="", era = -1
 
-    const blockExtrinsic = await allBlockExtrinsics(block.height);
+ if(extrinsic?.method == 'payoutStakers'){
+    let params = new Staking.Payout_stakersCall(extrinsic)
+    era = params.era.toNumber()
+    validator = params.validator_stash.toString()
+ } else if(extrinsic?.method == 'payoutValidator'){
+    let params = new Staking.Payout_validatorCall(extrinsic)
+    era = params.era.toNumber()
+     validator = extrinsic.signer.toString()
+ } else if(extrinsic?.method == 'payoutNominator'){
+    // @todo to check case for payoutNominator
+    let params = new Staking.Payout_nominatorCall(extrinsic)
+    era = params.era.toNumber()
+     validator = ""
+ }
 
-    // Find all the rewards destinations , amounts
-    let payoutCallsArgs = blockExtrinsic
-        .map((extrinsic: allBlockExtrinisics) => determinePayoutCallsArgs(extrinsic, extrinsic.signer.toString()))
-        .filter((args: any) => args.length != 0)
-        .flat()
+ // Reward destination may not be the same as the account from the event param
+ // need to call the storage function payee and check the below conditions 
+ // to correctly identify the destination
 
-    if (payoutCallsArgs.length == 0) {
-        return
-    }
+ let rewardDestination = await cachedRewardDestination(accountAddress, event as SubstrateEvent, block)
 
-    const payoutValidators = payoutCallsArgs.map(([validator,]: any) => validator)
+ if (rewardDestination.isStaked || rewardDestination.isStash) {
+     stash = accountAddress
+ } else if (rewardDestination.isController) {
+     stash = await cachedController(accountAddress, event as SubstrateEvent, block)
+ } else if (rewardDestination.isAccount) {
+     stash = rewardDestination.asAccount.toString()
+ }
 
-    const initialCallIndex = -1
+  element.address = account.toString()
+  element.blockNumber = block.height
+  element.extrinsicHash = extrinsic?.hash
+  element.timestamp = timestampToDate(block)
+  element.item = new RewardItem({
+      reward: new Reward({
+          amount: amount.toBigInt(),
+          era: era,
+          eventIdx: event.id.toString(),
+          validator: validator,
+          stash: stash
+      })
+  })
 
-    let accountsMapping: { [address: string]: string } = {}
-    let events = await allBlockEvents(block.height)
-    for (const eventRecord of events) {
-        if (
-            eventRecord.section == (event.section || event.name.split(".")[0]) &&
-            eventRecord.method == event.method) {
-
-            const [account, _] = new Staking.RewardedEvent(eventRecord).params
-
-            let accountAddress = account.toString()
-            let rewardDestination = await cachedRewardDestination(accountAddress, eventRecord as SubstrateEvent, block)
-
-            if (rewardDestination.isStaked || rewardDestination.isStash) {
-                accountsMapping[accountAddress] = accountAddress
-            } else if (rewardDestination.isController) {
-                accountsMapping[accountAddress] = await cachedController(accountAddress, eventRecord as SubstrateEvent, block)
-            } else if (rewardDestination.isAccount) {
-                accountsMapping[accountAddress] = rewardDestination.asAccount.toString()
-            }
-        }
-    }
-
-    await buildRewardEvents(
-        element,
-        block,
-        extrinsic,
-        store,
-        event.method,
-        event.section || event.name.split(".")[0],
-        accountsMapping,
-        initialCallIndex,
-        (currentCallIndex, eventAccount) => {
-            if (payoutValidators.length > currentCallIndex + 1) {
-                return payoutValidators[currentCallIndex + 1] == eventAccount ? currentCallIndex + 1 : currentCallIndex
-            } else {
-                return currentCallIndex
-            }
-        },
-        (currentCallIndex, eventIdx, stash, amount): any => {
-            if (currentCallIndex == -1) {
-                return {
-                    eventIdx: eventIdx,
-                    amount: amount,
-                    stash: stash,
-                    validator: "",
-                    era: -1
-                }
-            } else {
-                const [validator, era] = payoutCallsArgs[currentCallIndex]
-                return {
-                    eventIdx: eventIdx,
-                    amount: amount,
-                    stash: stash,
-                    validator: validator,
-                    era: era
-                }
-            }
-        }
-    )
+  await store.save(element)
 }
 
-/**
- * Parses out fom different reward destinations and amounts
- * @param extrinsic 
- * @param sender
- */
-function determinePayoutCallsArgs(extrinsic: allBlockExtrinisics, sender: string): [string, number][] {
-    if (isPayoutStakers(extrinsic)) {
-        return [extractArgsFromPayoutStakers(extrinsic)]
-    } else if (isPayoutValidator(extrinsic)) {
-        return [extractArgsFromPayoutValidator(extrinsic, sender)]
-    } else if (isBatch(extrinsic)) {
-        return callsFromBatch(extrinsic)
-            .map((call: any) => {
-                return determinePayoutCallsArgs(call, sender)
-                    .map((value, index, array) => {
-                        return value
-                    })
-            })
-            .flat()
-    } else if (isProxy(extrinsic)) {
-        let proxyCall = callFromProxy(extrinsic)
-        return determinePayoutCallsArgs(proxyCall, sender)
-    } else {
-        return []
-    }
-}
 
 export async function handleSlashed({
     store,
