@@ -25,7 +25,7 @@ type AccountHistory @entity {
   item: AccountHistoryItem!
 }
 
-union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem
+union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem | SlashItem
 
 type Reward {
   eventIdx: String!
@@ -53,6 +53,10 @@ type RewardItem {
 
 type ExtrinsicItem {
   extrinsic: Extrinsic!
+}
+
+type SlashItem {
+  slash: Reward!
 }
 
 type AccumulatedReward @entity {
