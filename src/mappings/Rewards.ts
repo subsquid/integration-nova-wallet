@@ -9,13 +9,10 @@ import {
   DatabaseManager,
   EventContext,
   StoreContext,
-  SubstrateBlock,
   SubstrateEvent,
-  SubstrateExtrinsic,
 } from "@subsquid/hydra-common";
 import {
   eventId,
-  eventIdFromBlockAndIdx,
   timestampToDate,
 } from "./helpers/common";
 import { Balance } from "@polkadot/types/interfaces";
@@ -184,7 +181,7 @@ async function getValidators(blockNumber: number): Promise<[string[], number]> {
 
   const api = await apiService();
 
-  const currentEra = (await api.query.staking.currentEra()).unwrap();
+  const currentEra = (await api.query.staking.currentEra.at(blockNumber.toString())).unwrap();
   // recheck
   const slashDeferDuration = await api.consts.staking.slashDeferDuration;
   const slashEra =

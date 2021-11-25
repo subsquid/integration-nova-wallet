@@ -22,18 +22,18 @@ export async function handleHistoryElement({
       return
     }
     // Check all block extrinisics
-    allExtrinsic.map(async (extrinisicItem: allBlockExtrinisics) =>{
+    let extrinisicItemPromises = allExtrinsic.map(async (extrinisicItem: allBlockExtrinisics) =>{
       const isSigned  = extrinisicItem.signature;
       if (isSigned) {
           let failedTransfers = await findFailedTransferCalls(extrinisicItem, block, store)
           if (failedTransfers != null) {
-              await saveFailedTransfers(failedTransfers, extrinisicItem, block, store)
+            await saveFailedTransfers(failedTransfers, extrinisicItem, block, store)
           } else {
-              await saveExtrinsic(extrinisicItem, block, store)
+            saveExtrinsic(extrinisicItem, block, store)
           }
       }
     })
-
+    await Promise.all(extrinisicItemPromises)
 }
 
 async function saveFailedTransfers(
@@ -97,7 +97,8 @@ if(checkIfPresent?.id){
     element.extrinsicIdx = extrinsicId
     element.timestamp = timestampToDate(block)
     // Fix this when error with query is resolved
-    // const success = extrinsic.event.name === 'system.ExtrinsicFailed'? false : true
+    // const success = extrinsic.event.name === 'system.ExtrinsicFailed'? false : true   // OR below one
+    // const success = extrinsic.event.name === 'utility.BatchInterrupted'? false : true
     const success = true
     extrinsic.tip = BigInt(extrinsic.tip)
     const newExtrinsic = new Extrinsic(
@@ -111,7 +112,7 @@ if(checkIfPresent?.id){
     element.item = new ExtrinsicItem( {
       extrinsic: newExtrinsic
     })
-    await store.save(element)
+    return store.save(element)
 }
 
 /// Success Transfer emits Transfer event that is handled at Transfers.ts handleTransfer()
@@ -120,7 +121,11 @@ async function findFailedTransferCalls(
     block: SubstrateBlock,
     store: DatabaseManager): Promise<Transfer[] | null> {
     // FIX
-    // if (extrinsic.event.name === 'system.ExtrinsicSuccess') {
+      // if (extrinsic.event.name === 'system.ExtrinsicSuccess') {
+    //     return null;
+    // }\
+    //  OR below one 
+    // if (extrinsic.event.name === 'utility.BatchCompleted') {
     //     return null;
     // }
 

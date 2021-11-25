@@ -1,6 +1,6 @@
 import {create} from './_registry'
 import {AccountId32} from '@polkadot/types/interfaces'
-import {u128, u32, Vec} from '@polkadot/types'
+import {u128, u32} from '@polkadot/types'
 import {SubstrateEvent, SubstrateExtrinsic} from '@subsquid/hydra-common'
 
 export namespace Staking {
@@ -101,9 +101,9 @@ export namespace Staking {
       return create('u32', this._extrinsic.args[1].value)
     }
   }
-  // Custom type for payout validator call
+   // Custom type for payout validator call
 
-  export class Payout_validatorCall {
+   export class Payout_validatorCall {
     private _extrinsic: SubstrateExtrinsic
 
     constructor(extrinsic: SubstrateExtrinsic) {

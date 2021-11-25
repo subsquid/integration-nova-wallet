@@ -22,7 +22,7 @@
     "@polkadot/types": "^6.5.1",
     "@subsquid/hydra-common": "5.0.0-alpha.9",
     "@subsquid/hydra-processor": "5.0.0-alpha.9",
-    "@subsquid/openreader": "^0.2.0",
+    "@subsquid/openreader": "^0.2.1",
     "axios": "^0.23.0",
     "axios-retry": "^3.2.4",
     "inflected": "^2.1.0",
