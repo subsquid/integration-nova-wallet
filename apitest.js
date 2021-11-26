@@ -2,7 +2,9 @@ const polk= require("@polkadot/api")
 async function m(){
  const api = await polk.ApiPromise.create({ provider: new polk.WsProvider('wss://kusama-rpc.polkadot.io/') })
 //  let res = await api.at("0x5dabc4070ad76ed7fecf05269c0f787c8a9d4a8adccad8443a73ab697c29b861").query.crowdloan.funds(2007);
- const currentEra = (await api.query.staking.currentEra.at("0x5dabc4070ad76ed7fecf05269c0f787c8a9d4a8adccad8443a73ab697c29b861"));
+const currentEra = (await api.query.staking.currentEra.at("0x5dabc4070ad76ed7fecf05269c0f787c8a9d4a8adccad8443a73ab697c29b861"));
+const data = await api.query.assets
+let resData = await api.consts.system.version;
 console.log(" currentEra :: ",currentEra)
 //  let res = await api.query.crowdloan.funds.at("0x5dabc4070ad76ed7fecf05269c0f787c8a9d4a8adccad8443a73ab697c29b861",2007);
 //  let res = await api.query.crowdloan.funds(2007);

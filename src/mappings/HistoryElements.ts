@@ -98,7 +98,7 @@ if(checkIfPresent?.id){
     element.timestamp = timestampToDate(block)
     // Fix this when error with query is resolved
     // const success = extrinsic.event.name === 'system.ExtrinsicFailed'? false : true   // OR below one
-    // const success = extrinsic.event.name === 'utility.BatchInterrupted'? false : true
+    // const success = extrinsic?.event?.name === 'utility.BatchInterrupted'? false : true
     const success = true
     extrinsic.tip = BigInt(extrinsic.tip)
     const newExtrinsic = new Extrinsic(
@@ -125,7 +125,7 @@ async function findFailedTransferCalls(
     //     return null;
     // }\
     //  OR below one 
-    // if (extrinsic.event.name === 'utility.BatchCompleted') {
+    // if (extrinsic?.event?.name === 'utility.BatchCompleted') {
     //     return null;
     // }
 
@@ -152,7 +152,7 @@ async function findFailedTransferCalls(
             fee: feesPaid,
             eventIdx: '-1',
             success: false,
-            id: `${extrinsic.id}` // FIX
+            id: `${extrinsic.id}` // FIX   extrinsic.event.id
         })
     })
 }
