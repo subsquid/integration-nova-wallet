@@ -98,8 +98,9 @@ if(checkIfPresent?.id){
     element.timestamp = timestampToDate(block)
     // Fix this when error with query is resolved
     // const success = extrinsic.event.name === 'system.ExtrinsicFailed'? false : true   // OR below one
+    const success = extrinsic.substrate_events.name === 'system.ExtrinsicFailed' ? false : true   // OR below one
     // const success = extrinsic?.event?.name === 'utility.BatchInterrupted'? false : true
-    const success = true
+    // const success = true
     extrinsic.tip = BigInt(extrinsic.tip)
     const newExtrinsic = new Extrinsic(
       {
@@ -121,13 +122,16 @@ async function findFailedTransferCalls(
     block: SubstrateBlock,
     store: DatabaseManager): Promise<Transfer[] | null> {
     // FIX
-      // if (extrinsic.event.name === 'system.ExtrinsicSuccess') {
+    // if (extrinsic.event.name === 'system.ExtrinsicSuccess') {
     //     return null;
     // }\
     //  OR below one 
     // if (extrinsic?.event?.name === 'utility.BatchCompleted') {
     //     return null;
     // }
+    if (extrinsic.substrate_events.name === 'system.ExtrinsicSuccess') {
+        return null;
+    }
 
     let transferCallsArgs = determineTransferCallsArgs(extrinsic)
     if (transferCallsArgs.length == 0) {
