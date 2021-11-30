@@ -33,7 +33,11 @@ export async function handleHistoryElement({
           }
       }
     })
-    await Promise.all(extrinisicItemPromises)
+
+    while(extrinisicItemPromises.length > 0) {
+        const batch = extrinisicItemPromises.splice(0, 50)
+        await Promise.all(batch)
+    }
 }
 
 async function saveFailedTransfers(
@@ -83,10 +87,10 @@ async function saveExtrinsic(extrinsic: allBlockExtrinisics, block : SubstrateBl
         AccountHistory,
         extrinsicId
     )
-if(checkIfPresent?.id){
-    // already processed
-    return
-}
+    if(checkIfPresent?.id){
+        // already processed
+        return
+    }
 
     const element = new AccountHistory({
       id: extrinsicId
