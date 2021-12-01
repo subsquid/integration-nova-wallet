@@ -29,7 +29,7 @@ export async function handleHistoryElement({
           if (failedTransfers != null) {
             await saveFailedTransfers(failedTransfers, extrinisicItem, block, store)
           } else {
-            saveExtrinsic(extrinisicItem, block, store)
+            return saveExtrinsic(extrinisicItem, block, store)
           }
       }
     })
