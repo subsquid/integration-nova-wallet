@@ -100,18 +100,15 @@ async function saveExtrinsic(extrinsic: allBlockExtrinisics, block : SubstrateBl
     element.extrinsicHash = extrinsic.hash
     element.extrinsicIdx = extrinsicId
     element.timestamp = timestampToDate(block)
-    // Fix this when error with query is resolved
-    // const success = extrinsic.event.name === 'system.ExtrinsicFailed'? false : true   // OR below one
-    const success = extrinsic.substrate_events.name === 'system.ExtrinsicFailed' ? false : true   // OR below one
-    // const success = extrinsic?.event?.name === 'utility.BatchInterrupted'? false : true
-    // const success = true
+
+    const success = extrinsic.substrate_events.name === 'utility.BatchInterrupted' ? false : true
     extrinsic.tip = BigInt(extrinsic.tip)
     const newExtrinsic = new Extrinsic(
       {
         hash: extrinsic.hash || '',
         module: extrinsic.section,
         call: extrinsic.method,
-        success: success, // recheck this
+        success: success, 
         fee: BigInt(await calculateFeeAsString(extrinsic as SubstrateExtrinsic))
     })
     element.item = new ExtrinsicItem( {
@@ -125,15 +122,8 @@ async function findFailedTransferCalls(
     extrinsic: allBlockExtrinisics,
     block: SubstrateBlock,
     store: DatabaseManager): Promise<Transfer[] | null> {
-    // FIX
-    // if (extrinsic.event.name === 'system.ExtrinsicSuccess') {
-    //     return null;
-    // }\
-    //  OR below one 
-    // if (extrinsic?.event?.name === 'utility.BatchCompleted') {
-    //     return null;
-    // }
-    if (extrinsic.substrate_events.name === 'system.ExtrinsicSuccess') {
+
+    if (extrinsic.substrate_events.name === 'utility.BatchCompleted') {
         return null;
     }
 
@@ -160,7 +150,7 @@ async function findFailedTransferCalls(
             fee: feesPaid,
             eventIdx: '-1',
             success: false,
-            id: `${extrinsic.id}` // FIX   extrinsic.event.id
+            id: `${extrinsic.substrate_events.id}`
         })
     })
 }
