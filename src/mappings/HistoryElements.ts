@@ -35,7 +35,7 @@ export async function handleHistoryElement({
     })
 
     while(extrinisicItemPromises.length > 0) {
-        const batch = extrinisicItemPromises.splice(0, 50)
+        const batch = extrinisicItemPromises.splice(0, 100)
         await Promise.all(batch)
     }
 }

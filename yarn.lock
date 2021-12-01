@@ -586,10 +586,10 @@
   resolved "https://registry.yarnpkg.com/@subsquid/graphiql-console/-/graphiql-console-0.2.0.tgz#53edcc562342735e800361bb3892c54388b2e717"
   integrity sha512-Wh2Oxi9JkK79Y728yDEeY7JelcY1cGiQTbzVIRMFLT2tjkkoQ69goAGXdh9QmM/ANAVrHQkBUNJOLd5oAg//oQ==
 
-"@subsquid/hydra-cli@5.0.0-alpha.9":
-  version "5.0.0-alpha.9"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-cli/-/hydra-cli-5.0.0-alpha.9.tgz#d7beae01215f84d1cc24f08929793a5f4c497976"
-  integrity sha512-ChMLMZ62tR37bLR1Ty1+Yv3mbsV3JGe5PUXmFpwZRs8I0UhNgri2gwSbHhmsVSzCAobFRNmw1jxbkGZKN98dRw==
+"@subsquid/hydra-cli@5.0.0-alpha.11":
+  version "5.0.0-alpha.11"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-cli/-/hydra-cli-5.0.0-alpha.11.tgz#bddeb0cb8e99fff14ad854f0de139912bfb9977b"
+  integrity sha512-dcttCmK7lG1VoxXAB6YceGfx7dUtMo5WC2AeCSLhpq12PZKkqB8yw3hdkYhLzhpof9wdUfKuAZJ0ehNg5AYlYg==
   dependencies:
     "@inquirer/input" "^0.0.13-alpha.0"
     "@inquirer/password" "^0.0.12-alpha.0"
@@ -601,6 +601,7 @@
     "@octokit/auth-oauth-device" "^3.1.2"
     "@subsquid/openreader" "^0.2.0"
     chalk "^4.1.2"
+    cli-select "^1.1.2"
     cli-ux "^5.6.3"
     dotenv "^10.0.0"
     execa "^4.1.0"
@@ -609,25 +610,25 @@
     simple-git "^2.44.0"
     tslib "^2.3.1"
 
-"@subsquid/hydra-common@5.0.0-alpha.9":
-  version "5.0.0-alpha.9"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-common/-/hydra-common-5.0.0-alpha.9.tgz#91e9c00f698e70df93102529c4090743dc32d3fd"
-  integrity sha512-h3PeYfwNGx/uVSkKxuv2yk20tZPg0gv4+OMSby0ubE065H53dRvm6zt2gulQdD5ub6HlMAkTFfAqD+Jp/4+DJA==
+"@subsquid/hydra-common@5.0.0-alpha.11":
+  version "5.0.0-alpha.11"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-common/-/hydra-common-5.0.0-alpha.11.tgz#d9af1b10005ada315040bb3b5eb8547224a17f36"
+  integrity sha512-MnKR3aPBfZZBIo7//rVX+uScCIv8mV2Ep48gueDZfNSrLIAZUzEReYb6NHAkTVhM6tWDw2tMzIuepuJsf9JxNQ==
 
-"@subsquid/hydra-common@^5.0.0-alpha.9":
+"@subsquid/hydra-common@^5.0.0-alpha.11":
   version "5.0.0-alpha.12"
   resolved "https://registry.yarnpkg.com/@subsquid/hydra-common/-/hydra-common-5.0.0-alpha.12.tgz#302151ad1e5fdfca5b8f0dc639c6fca80bb6747e"
   integrity sha512-dgyolenMC71BH3OQ/QhJG8Fvw8AsttqSV7HjRIfaYg2QZxNun9AVzkJBTeRrIjRBiiCfCaZWGcapSeTCgFmuZw==
 
-"@subsquid/hydra-processor@5.0.0-alpha.9":
-  version "5.0.0-alpha.9"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-processor/-/hydra-processor-5.0.0-alpha.9.tgz#007b7fdcb7943a2bb2b4dda0a97338a8649332a5"
-  integrity sha512-/8OkPPQ9gjk4WkqFG/2ysOMerdUAScUQlMiBaEFzlJxNnqr3j8PuDSRVVtFwx5h8XvwhtNCLDmqWfPk/FG4yqg==
+"@subsquid/hydra-processor@5.0.0-alpha.11":
+  version "5.0.0-alpha.11"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-processor/-/hydra-processor-5.0.0-alpha.11.tgz#18f444f85d1186c58713add7c7d2a835ec2db032"
+  integrity sha512-zGnBl39Or5f/4ynNnK6uPUv8QKQ2jYKsHQhdWaj64wxCqR7S2PUNwC781DuJRwUzHUerZf53p9ZguVsIuqd8oQ==
   dependencies:
     "@oclif/command" "^1.8.0"
     "@oclif/config" "^1"
     "@oclif/errors" "^1.3.5"
-    "@subsquid/hydra-common" "^5.0.0-alpha.9"
+    "@subsquid/hydra-common" "^5.0.0-alpha.11"
     chalk "^4.1.2"
     delay "~5.0.0"
     dotenv "^10.0.0"
@@ -635,6 +636,7 @@
     express "^4.17.1"
     graphql "^15.6.1"
     graphql-request "^3.5.0"
+    lodash "^4.17.21"
     p-immediate "^3.2.0"
     p-retry "~4.6.1"
     p-throttle "~4.1.1"
@@ -647,10 +649,10 @@
     yaml "^1.10.2"
     yaml-validator "^3.0.1"
 
-"@subsquid/hydra-typegen@5.0.0-alpha.9":
-  version "5.0.0-alpha.9"
-  resolved "https://registry.yarnpkg.com/@subsquid/hydra-typegen/-/hydra-typegen-5.0.0-alpha.9.tgz#2db103c14d3181a68d03da706593b407dbfface4"
-  integrity sha512-pAvrXipA0OYGr/1NBR08wQcITUdzCpz127e4Z6g5ZVq+QagLGKwfe8Gd8M/PecowYLXmDg0t7UfG3+swVKHq2w==
+"@subsquid/hydra-typegen@5.0.0-alpha.11":
+  version "5.0.0-alpha.11"
+  resolved "https://registry.yarnpkg.com/@subsquid/hydra-typegen/-/hydra-typegen-5.0.0-alpha.11.tgz#45a3ed69d3de60a478bc34cd60659542049c93be"
+  integrity sha512-K2OA5yBDh+PLtEiZHCrTMJqdl0ftm+2ow1VcHMTyFALQU0D0mVta0Q8iDvhs14UEtJl5ubi/Puc+fjwowkRJVg==
   dependencies:
     "@oclif/command" "^1.8.0"
     "@oclif/config" "^1"
@@ -833,7 +835,7 @@ accepts@^1.3.5, accepts@~1.3.7:
     mime-types "~2.1.24"
     negotiator "0.6.2"
 
-ansi-escapes@^3.1.0:
+ansi-escapes@^3.1.0, ansi-escapes@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-3.2.0.tgz#8780b98ff9dbf5638152d1f1fe5c1d7b4442976b"
   integrity sha512-cBhpre4ma+U0T1oM5fXg7Dy1Jw7zzwv7lt/GoCpr+hDQJoYnKVPLL4dCvSEFMmQurOQvSrwT7SL/DAlhBI97RQ==
@@ -1216,6 +1218,13 @@ cli-progress@^3.4.0:
   dependencies:
     colors "^1.1.2"
     string-width "^4.2.0"
+
+cli-select@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/cli-select/-/cli-select-1.1.2.tgz#456dced464b3346ca661b16a0e37fc4b28db4818"
+  integrity sha512-PSvWb8G0PPmBNDcz/uM2LkZN3Nn5JmhUl465tTfynQAXjKzFpmHbxStM6X/+awKp5DJuAaHMzzMPefT0suGm1w==
+  dependencies:
+    ansi-escapes "^3.2.0"
 
 cli-spinners@^2.2.0:
   version "2.6.1"
