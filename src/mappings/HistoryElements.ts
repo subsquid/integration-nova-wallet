@@ -101,7 +101,7 @@ async function saveExtrinsic(extrinsic: allBlockExtrinisics, block : SubstrateBl
     element.extrinsicIdx = extrinsicId
     element.timestamp = timestampToDate(block)
 
-    const success = extrinsic.substrate_events.name === 'utility.BatchInterrupted' ? false : true
+    const success = (extrinsic.substrate_events.name === 'utility.BatchInterrupted') || (extrinsic.substrate_events.name === 'system.ExtrinsicFailed') ? false : true
     extrinsic.tip = BigInt(extrinsic.tip)
     const newExtrinsic = new Extrinsic(
       {
@@ -123,7 +123,7 @@ async function findFailedTransferCalls(
     block: SubstrateBlock,
     store: DatabaseManager): Promise<Transfer[] | null> {
 
-    if (extrinsic.substrate_events.name === 'utility.BatchCompleted') {
+    if ((extrinsic.substrate_events.name === 'utility.BatchCompleted') || (extrinsic.substrate_events.name === 'system.ExtrinsicSuccess')) {
         return null;
     }
 
@@ -177,6 +177,5 @@ function determineTransferCallsArgs(extrinsic: allBlockExtrinisics ) : [string, 
 
 function extractArgsFromTransfer(call: allBlockExtrinisics): [string, bigint] {
     const [destinationAddress, amount] = call.args
-
-    return [destinationAddress.toString(), (amount as u64).toBigInt()]
+    return [destinationAddress.toString(), BigInt(amount?.value || amount)]
 }
