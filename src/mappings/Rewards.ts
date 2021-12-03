@@ -181,7 +181,7 @@ async function getValidators(blockNumber: number): Promise<[string[], number]> {
 
   const api = await apiService();
 
-  const currentEra = (await api.query.staking.currentEra.at(blockNumber.toString())).unwrap();
+  const currentEra = ((await api.query.staking.currentEra()).unwrap());
   // recheck
   const slashDeferDuration = await api.consts.staking.slashDeferDuration;
   const slashEra =

@@ -34,10 +34,10 @@ export interface allBlockExtrinisics {
   tip: bigint;
   signature:string;
   hash: string;
-  // event :{
-  //   name: string;
-  //   id: string
-  // };
+  substrate_events :{
+    name: string;
+    id: string
+  };
  
 }
 
@@ -179,7 +179,10 @@ const query =`query MyQuery {
     tip
     signature
     hash
-   
+    substrate_events {
+      name
+      id
+    }
   }
 }
 `

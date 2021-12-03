@@ -29,11 +29,15 @@ export async function handleHistoryElement({
           if (failedTransfers != null) {
             await saveFailedTransfers(failedTransfers, extrinisicItem, block, store)
           } else {
-            saveExtrinsic(extrinisicItem, block, store)
+            return saveExtrinsic(extrinisicItem, block, store)
           }
       }
     })
-    await Promise.all(extrinisicItemPromises)
+
+    while(extrinisicItemPromises.length > 0) {
+        const batch = extrinisicItemPromises.splice(0, 100)
+        await Promise.all(batch)
+    }
 }
 
 async function saveFailedTransfers(
@@ -83,10 +87,10 @@ async function saveExtrinsic(extrinsic: allBlockExtrinisics, block : SubstrateBl
         AccountHistory,
         extrinsicId
     )
-if(checkIfPresent?.id){
-    // already processed
-    return
-}
+    if(checkIfPresent?.id){
+        // already processed
+        return
+    }
 
     const element = new AccountHistory({
       id: extrinsicId
@@ -96,17 +100,15 @@ if(checkIfPresent?.id){
     element.extrinsicHash = extrinsic.hash
     element.extrinsicIdx = extrinsicId
     element.timestamp = timestampToDate(block)
-    // Fix this when error with query is resolved
-    // const success = extrinsic.event.name === 'system.ExtrinsicFailed'? false : true   // OR below one
-    // const success = extrinsic?.event?.name === 'utility.BatchInterrupted'? false : true
-    const success = true
+
+    const success = (extrinsic.substrate_events.name === 'utility.BatchInterrupted') || (extrinsic.substrate_events.name === 'system.ExtrinsicFailed') ? false : true
     extrinsic.tip = BigInt(extrinsic.tip)
     const newExtrinsic = new Extrinsic(
       {
         hash: extrinsic.hash || '',
         module: extrinsic.section,
         call: extrinsic.method,
-        success: success, // recheck this
+        success: success, 
         fee: BigInt(await calculateFeeAsString(extrinsic as SubstrateExtrinsic))
     })
     element.item = new ExtrinsicItem( {
@@ -120,14 +122,10 @@ async function findFailedTransferCalls(
     extrinsic: allBlockExtrinisics,
     block: SubstrateBlock,
     store: DatabaseManager): Promise<Transfer[] | null> {
-    // FIX
-      // if (extrinsic.event.name === 'system.ExtrinsicSuccess') {
-    //     return null;
-    // }\
-    //  OR below one 
-    // if (extrinsic?.event?.name === 'utility.BatchCompleted') {
-    //     return null;
-    // }
+
+    if ((extrinsic.substrate_events.name === 'utility.BatchCompleted') || (extrinsic.substrate_events.name === 'system.ExtrinsicSuccess')) {
+        return null;
+    }
 
     let transferCallsArgs = determineTransferCallsArgs(extrinsic)
     if (transferCallsArgs.length == 0) {
@@ -152,7 +150,7 @@ async function findFailedTransferCalls(
             fee: feesPaid,
             eventIdx: '-1',
             success: false,
-            id: `${extrinsic.id}` // FIX   extrinsic.event.id
+            id: `${extrinsic.substrate_events.id}`
         })
     })
 }
@@ -179,6 +177,5 @@ function determineTransferCallsArgs(extrinsic: allBlockExtrinisics ) : [string, 
 
 function extractArgsFromTransfer(call: allBlockExtrinisics): [string, bigint] {
     const [destinationAddress, amount] = call.args
-
-    return [destinationAddress.toString(), (amount as u64).toBigInt()]
+    return [destinationAddress.toString(), BigInt(amount?.value || amount)]
 }
