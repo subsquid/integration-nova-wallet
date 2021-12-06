@@ -1,4 +1,4 @@
-# Fearless Schema
+# Nova Schema
 
 type Transfer @entity{
   amount: String!
