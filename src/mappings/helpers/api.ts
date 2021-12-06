@@ -188,11 +188,6 @@ const query =`query MyQuery {
   }
 }
 `
-// Add this to above query when duplicate data issue is fixed
-// event{
-//   name
-//   id
-// }
 let data = JSON.stringify({
   query,
   variables: {}
