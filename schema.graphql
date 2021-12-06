@@ -1,53 +1,62 @@
-# Fearless Schema
-
-type FeesPaid @entity {
-  fee: BigInt!
-  blockProducerAddress: String
-}
+# Nova Schema
 
 type Transfer @entity{
   amount: String!
   to: String!
   from: String!
-  fee: FeesPaid!
+  fee: BigInt!
   eventIdx: String!
-  extrinisicIdx: String! @unique
+  extrinisicIdx: String!
   success: Boolean!
 }
 
-
-type Reward {
-  eventIdx: Int!
-  amount: String!
-  isReward: Boolean!,
-  era: Int,
-  stash: String,
-  validator: String
+type AccountHistory @entity {
+  id: ID!
+  address: String!
+  blockNumber: Int!
+  extrinsicIdx: String
+  extrinsicHash: String
+  timestamp: DateTime!
+  item: AccountHistoryItem!
 }
 
-type AccumulatedReward @entity {
-  id: ID! #address
+union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem | SlashItem
+
+type Reward {
+  eventIdx: String!
   amount: BigInt!
+  era: Int
+  stash: String
+  validator: String
 }
 
 type Extrinsic {
   hash: String!
   module: String!
   call: String!
-  fee: String!
+  fee: BigInt!
   success: Boolean!
 }
 
-type HistoryElement @entity {
-  id: ID!
-  blockNumber: Int!
-  extrinsicIdx: String,
-  extrinsicHash: String
-  timestamp: BigInt! 
-  address: String! 
-  reward: Reward
-  extrinsic: Extrinsic
-  transfer: Transfer
+type TransferItem {
+  transfer: Transfer!
+}
+
+type RewardItem {
+  reward: Reward!
+}
+
+type ExtrinsicItem {
+  extrinsic: Extrinsic!
+}
+
+type SlashItem {
+  slash: Reward!
+}
+
+type AccumulatedReward @entity {
+  id: ID! #address
+  amount: BigInt!
 }
 
 type EraValidatorInfo @entity {
@@ -64,12 +73,6 @@ type IndividualExposure {
   value: String!
 }
 
-#enum StakeChangeType {
-#  bonded
-#  unbonded
-#  slashed
-#  rewarded
-#}
 
 type StakeChange @entity {
   id: ID!
@@ -92,4 +95,3 @@ type ErrorEvent @entity {
   id: ID!
   description: String!
 }
-

@@ -4,7 +4,8 @@ import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types/types/codec";
 import { Vec } from '@polkadot/types';
 import { encodeAddress } from "@polkadot/util-crypto";
-import { allBlockExrinisics } from './api';
+import { BlockEvent, BlockExtrinisic } from './api';
+import { mapExtrinisicToFees } from './helpers';
 const batchCalls = ["batch", "batchAll"]
 const transferCalls = ["transfer", "transferKeepAlive"]
 
@@ -15,24 +16,24 @@ const transferCalls = ["transfer", "transferKeepAlive"]
 export function convertAddressToSubstrate(address: string) : string {
     return encodeAddress(address, 42);
 }
-export function isBatch(call:allBlockExrinisics) : boolean {
+export function isBatch(call:BlockExtrinisic) : boolean {
     return call.section == "utility" && batchCalls.includes(call.method)
 }
 
-export function isProxy(call:allBlockExrinisics) : boolean {
+export function isProxy(call:BlockExtrinisic) : boolean {
     return call.section == "proxy" && call.method == "proxy"
 }
 
-export function isTransfer(call:SubstrateExtrinsic) : boolean {
+export function isTransfer(call:BlockExtrinisic) : boolean {
     return call.section == "balances" && transferCalls.includes(call.method)
 }
 
-export function callsFromBatch(batchCall:allBlockExrinisics){
+export function callsFromBatch(batchCall:BlockExtrinisic){
     let calls:any = batchCall.args[0]
     return calls.value
 }
 
-export function callFromProxy(proxyCall:allBlockExrinisics) {
+export function callFromProxy(proxyCall:BlockExtrinisic) {
     // return proxyCall.args[2] as SubstrateExtrinsic
     return proxyCall.args[2]
 }
@@ -62,62 +63,84 @@ export function timestamp(block: SubstrateBlock): bigint {
     return  BigInt(Math.round((block.timestamp / 1000)))
 }
 
-export function calculateFeeAsString(extrinsic?: SubstrateExtrinsic): string {
-// query MyQuery {
-//   substrate_extrinsic(where: {hash: {_eq: "0x5430d945838c8dc84eba9988303b79e8e8a638c45dc2711815712b9f06294116"}}) {
-//     id
-//     name
-//     section
-//     event {
-//       extrinsicName
-//       extrinsicIndex
-//       name
-//       method
-//       data
-//       extrinsicId
-//       params
-//       section
-//     }
-//   }
-// }
-
-    if (extrinsic) {
-        let balancesFee = exportFeeFromBalancesDepositEvent(extrinsic)
-        let treasureFee = exportFeeFromTreasureDepositEvent(extrinsic)
-
-        let totalFee = balancesFee + treasureFee
-        return totalFee.toString()
-    } else {
-        return BigInt(0).toString()
-    } 
+export function timestampToDate(block: SubstrateBlock): Date {
+    return  new Date(block.timestamp)
 }
 
-function exportFeeFromBalancesDepositEvent(extrinsic: SubstrateExtrinsic): bigint {
-    const eventRecord:any = undefined 
-    // extrinsic.events.find((event) => {
-    //     return event.event.method == "Deposit" && event.event.section == "balances"
-    // })
 
-    if (eventRecord != undefined) {
-        const {event: {data: [, fee]}}= eventRecord
-
-        return (fee as Balance).toBigInt()
-    } else  {
-        return BigInt(0)
+let blockFeesCache: { [blockNumber: number]: mapExtrinisicToFees } = {};
+/**
+ * Creates a hash map to find the fees events for
+ * an extrinisic
+ * @param {number} blockNumber
+ * @returns <mapExtrinisicToFees>
+ */
+export async function feeEventsToExtrinisicMap(
+  blockNumber: number,
+):Promise< mapExtrinisicToFees> {
+  if (blockFeesCache[blockNumber]) {
+    return blockFeesCache[blockNumber];
+  }
+  blockFeesCache = {};
+  let extrinisicMap: mapExtrinisicToFees = {};
+  const events = await BlockEvent(blockNumber);
+  events.map((entity: BlockEvent) => {
+    let extrinsicId = entity.extrinsicId;
+    if(!extrinsicId){
+      return
     }
+    let method = entity.method;
+    let section = entity.section;
+    extrinisicMap[extrinsicId] = extrinisicMap[extrinsicId] || {}
+    if (
+      extrinsicId &&
+      method === "Deposit" &&
+      (section === "balances" || section === "treasury" || section ==="Withdraw")
+    ) {
+      extrinisicMap[extrinsicId][section] =  section === "treasury" ? BigInt(
+        entity?.data?.param0?.value || 0n
+      ) : BigInt(
+        entity?.data?.param1?.value || 0n
+      );
+    }
+  });
+  blockFeesCache[blockNumber] = extrinisicMap
+  return blockFeesCache[blockNumber];
 }
 
-function exportFeeFromTreasureDepositEvent(extrinsic: SubstrateExtrinsic): bigint {
-    const eventRecord:any = undefined
-    // extrinsic.events.find((event) => {
-    //     return event.event.method == "Deposit" && event.event.section == "treasury"
-    // })
+/**
+ * Calculates total for a given extrinsic
+ * @param {BlockExtrinisic} extrinsic 
+ * @param {mapExtrinisicToFees} feeEvents 
+ * @returns {BigInt}
+ */
+export function calculateFee(
+    extrinsic: BlockExtrinisic,
+    feeEvents: mapExtrinisicToFees): bigint {
 
-    if (eventRecord != undefined) {
-        const {event: {data: [fee]}}= eventRecord
+    if (extrinsic?.id) {
+       let totalFee = 0n
+        let balancesFee = feeEvents[extrinsic.id]?.balances || 0n
+        let treasureFee = feeEvents[extrinsic.id]?.treasury || 0n
 
-        return (fee as Balance).toBigInt()
-    } else  {
-        return BigInt(0)
+        // Applicable from spec 9122
+        let withdraw = feeEvents[extrinsic.id]?.Withdraw || 0n
+        totalFee = withdraw ? withdraw :balancesFee + treasureFee
+
+        return totalFee
     }
+
+    return 0n;
+}
+
+/**
+ * Find whether the extrinsic is successful or not
+ * @param {BlockExtrinisic} extrinsic 
+ * @returns {Boolean}
+ */
+export function isExtrinisicSuccess( extrinsic: BlockExtrinisic): boolean {
+  return !extrinsic.substrate_events.some((element) => {
+    return element.name === "utility.BatchInterrupted" || 
+    element.name === "system.ExtrinsicFailed"
+  })
 }

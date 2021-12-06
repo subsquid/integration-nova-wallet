@@ -1,140 +1,228 @@
-// import {DatabaseManager,ExtrinsicContext, StoreContext, SubstrateExtrinsic, SubstrateBlock} from '@subsquid/hydra-common'
-// import {HistoryElement, Transfer} from "../generated/model";
-// import {
-//     callFromProxy, callsFromBatch,
-//     calculateFeeAsString,
-//     extrinsicIdFromBlockAndIdx, isBatch, isProxy,
-//     isTransfer,
-//     timestamp
-// } from "./helpers/common";
-// import {CallBase} from "@polkadot/types/types/calls";
-// import {AnyTuple} from "@polkadot/types/types/codec";
-// import {u64} from "@polkadot/types";
-// import { getOrCreate } from './helpers/helpers';
+import {
+  DatabaseManager,
+  ExtrinsicContext,
+  StoreContext,
+  SubstrateExtrinsic,
+  SubstrateBlock,
+} from "@subsquid/hydra-common";
+import {
+  AccountHistory,
+  Extrinsic,
+  ExtrinsicItem,
+  Transfer,
+  TransferItem,
+} from "../generated/model";
+import {
+  callFromProxy,
+  callsFromBatch,
+  calculateFee,
+  extrinsicIdFromBlockAndIdx,
+  isBatch,
+  isProxy,
+  isTransfer,
+  timestampToDate,
+  feeEventsToExtrinisicMap,
+  isExtrinisicSuccess,
+} from "./helpers/common";
+import { u64 } from "@polkadot/types";
+import { getOrCreate, get, mapExtrinisicToFees } from "./helpers/helpers";
+import {
+  BlockExtrinisic,
+  allBlockExtrinsics,
+} from "./helpers/api";
 
-// export async function handleHistoryElement({
-//     store,
-//     event,
-//     block,
-//     extrinsic,
-//   }: ExtrinsicContext & StoreContext): Promise<void> {
-//     const isSigned  = extrinsic.signature;
-//     if (isSigned) {
-//         let failedTransfers = findFailedTransferCalls(extrinsic, block)
-//         if (failedTransfers != null) {
-//             await saveFailedTransfers(failedTransfers, extrinsic, block, store)
-//         } else {
-//             await saveExtrinsic(extrinsic, block, store)
-//         }
-//     }
-// }
+export async function handleHistoryElement({
+  store,
+  event,
+  block,
+  extrinsic,
+}: ExtrinsicContext & StoreContext): Promise<void> {
+  const allExtrinsic = await allBlockExtrinsics(block.height);
+  const fees = await feeEventsToExtrinisicMap(block.height);
+  if (allExtrinsic.length == 0) {
+    return;
+  }
+  // Check all block extrinisics
+  let extrinisicItemPromises = allExtrinsic.map(
+    async (extrinisicItem: BlockExtrinisic) => {
+      const isSigned = extrinisicItem.signature;
+      if (isSigned) {
+        let failedTransfer = await findFailedTransferCalls(
+          extrinisicItem,
+          fees,
+          block,
+          store
+        );
+        if (failedTransfer != null) {
+          await saveFailedTransfer(
+            failedTransfer,
+            extrinisicItem,
+            fees,
+            block,
+            store
+          );
+        } else {
+          return saveExtrinsic(extrinisicItem,fees, block, store);
+        }
+      }
+    }
+  );
 
-// async function saveFailedTransfers(
-//     transfers: Transfer[],
-//     extrinsic: SubstrateExtrinsic,
-//     block: SubstrateBlock,
-//     store: DatabaseManager): Promise<void> {
-//     let promises = transfers.map(async transfer => {
-//         let extrinsicHash = extrinsic.hash;
-//         let blockNumber = block.height
-//         let extrinsicIdx = extrinsic.id
-//         let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx)
-//         let blockTimestamp = timestamp(block);
+  while (extrinisicItemPromises.length > 0) {
+    const batch = extrinisicItemPromises.splice(0, 100);
+    await Promise.all(batch);
+  }
+}
 
-//         const elementFrom =  await getOrCreate(store, HistoryElement,extrinsicId+`-from`)
-//         elementFrom.address = transfer.from
-//         elementFrom.blockNumber = blockNumber
-//         elementFrom.extrinsicHash = extrinsicHash
-//         elementFrom.extrinsicIdx = extrinsicIdx
-//         elementFrom.timestamp = blockTimestamp
-//         elementFrom.transfer = transfer
+async function saveFailedTransfer(
+  transfers: Transfer[],
+  extrinsic: BlockExtrinisic,
+  fees: mapExtrinisicToFees,
+  block: SubstrateBlock,
+  store: DatabaseManager
+): Promise<void> {
+  let promises = transfers.map(async (transfer) => {
+    transfer.fee = calculateFee(
+        extrinsic,
+        fees
+        )
+    await store.save(transfer);
+    let extrinsicHash = extrinsic.hash;
+    let blockNumber = block.height;
+    let extrinsicIdx = extrinsic.id;
+    let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx);
+    let blockTimestamp = timestampToDate(block);
 
-//         const elementTo = await getOrCreate(store, HistoryElement,extrinsicId+`-to`)
-//         elementTo.address = transfer.to
-//         elementTo.blockNumber = blockNumber
-//         elementTo.extrinsicHash = extrinsicHash
-//         elementTo.extrinsicIdx = extrinsicIdx
-//         elementTo.timestamp = blockTimestamp
-//         elementTo.transfer = transfer
+    const elementFrom = await getOrCreate(
+      store,
+      AccountHistory,
+      extrinsicId + `-from`
+    );
+    elementFrom.address = transfer.from;
+    elementFrom.blockNumber = blockNumber;
+    elementFrom.extrinsicHash = extrinsicHash;
+    elementFrom.extrinsicIdx = extrinsicIdx;
+    elementFrom.timestamp = blockTimestamp;
+    elementFrom.item = new TransferItem({
+      transfer: transfer.id
+    });
 
-//         return [ store.save(elementFrom),store.save(elementTo)]
-//     })
-//     await Promise.allSettled(promises)
-// }
+    const elementTo = await getOrCreate(
+      store,
+      AccountHistory,
+      extrinsicId + `-to`
+    );
+    elementTo.address = transfer.to;
+    elementTo.blockNumber = blockNumber;
+    elementTo.extrinsicHash = extrinsicHash;
+    elementTo.extrinsicIdx = extrinsicIdx;
+    elementTo.timestamp = blockTimestamp;
+    elementTo.item = new TransferItem({
+      transfer: transfer.id,
+    });
 
-// async function saveExtrinsic(extrinsic: SubstrateExtrinsic, block : SubstrateBlock, store: DatabaseManager): Promise<void> {
-//     let blockNumber = block.height;
-//     let extrinsicIdx = extrinsic.id
-//     let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx)
+    return [store.save(elementFrom), store.save(elementTo)];
+  });
+  await Promise.allSettled(promises);
+}
 
-//     const element = await getOrCreate(store, HistoryElement,extrinsicId)
-//     element.address = extrinsic.signer.toString()
-//     element.blockNumber = blockNumber
-//     element.extrinsicHash = extrinsic.hash
-//     element.extrinsicIdx = extrinsicIdx
-//     element.timestamp = timestamp(block)
-//     element.extrinsic = {
-//         hash: extrinsic.hash || '',
-//         module: extrinsic.section,
-//         call: extrinsic.method,
-//         success: true, // recheck this
-//         fee: calculateFeeAsString(extrinsic)
-//     }
-//     await store.save(element)
-// }
+async function saveExtrinsic(
+  extrinsic: BlockExtrinisic,
+  fees: mapExtrinisicToFees,
+  block: SubstrateBlock,
+  store: DatabaseManager
+): Promise<void> {
+  let blockNumber = block.height;
+  let extrinsicIdx = extrinsic.id;
+  let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx);
+  let checkIfPresent = await get(store, AccountHistory, extrinsicId);
+  if (checkIfPresent?.id) {
+    // already processed
+    return;
+  }
 
-// /// Success Transfer emits Transfer event that is handled at Transfers.ts handleTransfer()
-// function findFailedTransferCalls(
-//     extrinsic: SubstrateExtrinsic,
-//     block: SubstrateBlock): Transfer[] | null {
-//     if (extrinsic.hash) { // recheck .success
-//         return null;
-//     }
+  const element = new AccountHistory({
+    id: extrinsicId,
+  });
+  element.address = extrinsic.signer.toString();
+  element.blockNumber = blockNumber;
+  element.extrinsicHash = extrinsic.hash;
+  element.extrinsicIdx = extrinsicId;
+  element.timestamp = timestampToDate(block);
 
-//     // let transferCallsArgs = determineTransferCallsArgs(extrinsic.method)
-//     // if (transferCallsArgs.length == 0) {
-//     //     return null;
-//     // }
+  const success = isExtrinisicSuccess(extrinsic)
+  extrinsic.tip = BigInt(extrinsic.tip);
+  const newExtrinsic = new Extrinsic({
+    hash: extrinsic.hash || "",
+    module: extrinsic.section,
+    call: extrinsic.method,
+    success: success,
+    fee:  calculateFee(extrinsic, fees),
+  });
+  element.item = new ExtrinsicItem({
+    extrinsic: newExtrinsic,
+  });
+  return store.save(element);
+}
 
-//     let sender = extrinsic.signer
-//     return null;
-//     // return transferCallsArgs.map(tuple => {
-//     //     let blockNumber = block.height;
-//     //     return {
-//     //         extrinsicHash: extrinsic.hash || '',
-//     //         amount: tuple[1].toString(),
-//     //         from: sender.toString(),
-//     //         to: tuple[0],
-//     //         blockNumber: blockNumber,
-//     //         fee: calculateFeeAsString(extrinsic),
-//     //         eventIdx: -1,
-//     //         success: false
-//     //     }
-//     // })
-// }
+/// Success Transfer emits Transfer event that is handled at Transfers.ts handleTransfer()
+async function findFailedTransferCalls(
+  extrinsic: BlockExtrinisic,
+  fees: mapExtrinisicToFees,
+  block: SubstrateBlock,
+  store: DatabaseManager
+): Promise<Transfer[] | null> {
 
-// function determineTransferCallsArgs(causeCall: CallBase<AnyTuple>) : [string, bigint][] {
-//     if (isTransfer(causeCall)) {
-//         return [extractArgsFromTransfer(causeCall)]
-//     } else if (isBatch(causeCall)) {
-//         return callsFromBatch(causeCall)
-//             .map(call => {
-//                 return determineTransferCallsArgs(call)
-//                     .map((value, index, array) => {
-//                         return value
-//                     })
-//             })
-//             .flat()
-//     } else if (isProxy(causeCall)) {
-//         let proxyCall = callFromProxy(causeCall)
-//         return determineTransferCallsArgs(proxyCall)
-//     } else {
-//         return []
-//     }
-// }
+  const success = isExtrinisicSuccess(extrinsic)
+  if (
+    success
+  ) {
+    return null;
+  }
 
-// function extractArgsFromTransfer(call: CallBase<AnyTuple>): [string, bigint] {
-//     const [destinationAddress, amount] = call.args
+  let transferCallsArgs = determineTransferCallsArgs(extrinsic);
+  if (transferCallsArgs.length == 0) {
+    return null;
+  }
+  let transferEventID = extrinsic.substrate_events.find(element =>
+     element.name === 'balances.Transfer')?.id
+  let sender = extrinsic.signer;
+  return transferCallsArgs.map((tuple) => {
+    return new Transfer({
+      extrinisicIdx: extrinsic.id,
+      amount: tuple[1].toString(),
+      from: sender.toString(),
+      to: tuple[0].toString(),
+      fee:  calculateFee(extrinsic, fees),
+      eventIdx: "-1",
+      success: false,
+      id: `${transferEventID}`,
+    });
+  });
+}
 
-//     return [destinationAddress.toString(), (amount as u64).toBigInt()]
-// }
+function determineTransferCallsArgs(
+  extrinsic: BlockExtrinisic
+): [string, bigint][] {
+  if (isTransfer(extrinsic)) {
+    return [extractArgsFromTransfer(extrinsic)];
+  } else if (isBatch(extrinsic)) {
+    return callsFromBatch(extrinsic)
+      .map((call: any) => {
+        return determineTransferCallsArgs(call).map((value, index, array) => {
+          return value;
+        });
+      })
+      .flat();
+  } else if (isProxy(extrinsic)) {
+    let proxyCall = callFromProxy(extrinsic);
+    return determineTransferCallsArgs(proxyCall);
+  } else {
+    return [];
+  }
+}
+
+function extractArgsFromTransfer(call: BlockExtrinisic): [string, bigint] {
+  const [destinationAddress, amount] = call.args;
+  return [destinationAddress.toString(), BigInt(amount?.value || amount)];
+}

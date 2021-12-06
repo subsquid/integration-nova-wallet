@@ -1,5 +1,5 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
-import {FeesPaid} from "./feesPaid.model"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
+import * as marshal from "../marshal"
 
 @Entity_()
 export class Transfer {
@@ -19,9 +19,8 @@ export class Transfer {
   @Column_("text", {nullable: false})
   from!: string
 
-  @Index_()
-  @ManyToOne_(() => FeesPaid, {nullable: false})
-  fee!: FeesPaid
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  fee!: bigint
 
   @Column_("text", {nullable: false})
   eventIdx!: string

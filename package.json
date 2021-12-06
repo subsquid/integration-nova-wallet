@@ -1,5 +1,5 @@
 {
-  "name": "fearless-indexer",
+  "name": "nova-indexer",
   "private": true,
   "version": "0.1.0",
   "scripts": {
@@ -20,19 +20,19 @@
   "dependencies": {
     "@polkadot/api": "^6.5.1",
     "@polkadot/types": "^6.5.1",
-    "@subsquid/hydra-common": "5.0.0-alpha.9",
-    "@subsquid/hydra-processor": "5.0.0-alpha.9",
-    "@subsquid/openreader": "^0.2.0",
+    "@subsquid/hydra-common": "^5.0.0-alpha.13",
+    "@subsquid/hydra-processor": "^5.0.0-alpha.13",
+    "@subsquid/openreader": "^0.2.1",
     "axios": "^0.23.0",
     "axios-retry": "^3.2.4",
     "inflected": "^2.1.0",
     "typeorm": "0.2.38"
   },
   "devDependencies": {
-    "@subsquid/hydra-cli": "5.0.0-alpha.9",
-    "@subsquid/hydra-typegen": "5.0.0-alpha.9",
+    "@subsquid/hydra-cli": "^5.0.0-alpha.13",
+    "@subsquid/hydra-typegen": "^5.0.0-alpha.13",
     "@types/inflected": "^1.1.29",
     "@types/pg": "^8.6.1",
-    "typescript": "~4.4.2"
+    "typescript": "^4.4.4"
   }
 }

@@ -1,4 +1,4 @@
-# Fearless Wallet Indexer
+# Nova Wallet Indexer
 
 ## Prerequisites
 

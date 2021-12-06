@@ -101,22 +101,31 @@ export namespace Staking {
       return create('u32', this._extrinsic.args[1].value)
     }
   }
-  // Custom type for payout validator call
+   // Custom type for payout validator call
 
-export class Payout_validatorCall {
-  private _extrinsic: SubstrateExtrinsic
+   export class Payout_validatorCall {
+    private _extrinsic: SubstrateExtrinsic
 
-  constructor(extrinsic: SubstrateExtrinsic) {
-    this._extrinsic = extrinsic
+    constructor(extrinsic: SubstrateExtrinsic) {
+      this._extrinsic = extrinsic
+    }
+    get era(): u32 {
+      return create('u32', this._extrinsic.args[0].value)
+    }
   }
-  get era(): u32 {
-    return create('u32', this._extrinsic.args[0].value)
+
+
+  export class Payout_nominatorCall {
+    private _extrinsic: SubstrateExtrinsic
+
+    constructor(extrinsic: SubstrateExtrinsic) {
+      this._extrinsic = extrinsic
+    }
+    get era(): u32 {
+      return create('u32', this._extrinsic.args[0].value)
+    }
+    // get validator(): 	Vec<(AccountId32, u32)> {
+    //   return create('Vec<(AccountId32, u32)>', this._extrinsic.args[0].value)
+    // }
   }
 }
-}
-
-
-
-
-
-
