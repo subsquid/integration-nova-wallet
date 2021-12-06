@@ -1,15 +1,10 @@
 # Fearless Schema
 
-type FeesPaid @entity {
-  fee: BigInt!
-  blockProducerAddress: String
-}
-
 type Transfer @entity{
   amount: String!
   to: String!
   from: String!
-  fee: FeesPaid!
+  fee: BigInt!
   eventIdx: String!
   extrinisicIdx: String!
   success: Boolean!

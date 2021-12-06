@@ -1,4 +1,3 @@
-export * from "./model/feesPaid.model"
 export * from "./model/transfer.model"
 export * from "./model/accountHistory.model"
 export * from "./model/accountHistoryItem"

@@ -1,4 +1,4 @@
-import { FeesPaid, AccountHistory, Transfer, TransferItem } from '../generated/model';
+import {  AccountHistory, Transfer, TransferItem } from '../generated/model';
 import { Balances } from '../types'
 import {
   DatabaseManager,
@@ -10,10 +10,13 @@ import {
 } from "@subsquid/hydra-common";
 import {
   blockNumber,
+  calculateFee,
   eventId,
+  feeEventsToExtrinisicMap,
   timestampToDate,
 } from "./helpers/common";
 import { getOrCreate } from "./helpers/helpers";
+import { BlockExtrinisic } from './helpers/api';
 
 export async function handleTransfer({
   store,
@@ -63,6 +66,7 @@ async function populateTransfer(
     element.extrinsicIdx = extrinsic.id;
   }
   const [from, to, value] = new Balances.TransferEvent(event).params
+  const fees = await feeEventsToExtrinisicMap(block.height);
   let transfer: Transfer | undefined = await store.get(Transfer, {
     where: { extrinisicIdx: extrinsic?.id },
   })
@@ -74,18 +78,10 @@ async function populateTransfer(
     console.error(`extrinisic id undefined for transfer with event id = ${event.id}.Skipping it `)
     return
   }
-  const feesPaid = await getOrCreate(
-    store,
-    FeesPaid,
-    extrinsic.id
-  );
-  feesPaid.fee = feesPaid.fee || 0n;
-  feesPaid.blockProducerAddress = feesPaid.blockProducerAddress || ''
-  await store.save(feesPaid);
   transfer.amount = value.toString();
   transfer.from = from.toString();
   transfer.to = to.toString();
-  transfer.fee = feesPaid;
+  transfer.fee = calculateFee(extrinsic as BlockExtrinisic,fees);
   transfer.extrinisicIdx = extrinsic?.id;
   transfer.eventIdx = event.id;
   transfer.success = true;

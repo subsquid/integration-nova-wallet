@@ -17,7 +17,7 @@ typegen:
     - staking.Unbonded
     - staking.pay
   calls:
-    # - timestamp.set
+    - timestamp.set
     - staking.payout_stakers
     - staking.payout_validator
     - staking.payout_nominator
@@ -30,10 +30,6 @@ mappings:
       handler: handleTransfer
     - event: balances.transfer_keep_alive
       handler: handleTransfer
-    - event: balances.Deposit
-      handler: handleBalanceDeposit
-    - event: treasury.Deposit
-      handler: handleTreasuryDeposit
     - event: staking.Reward
       handler: handleReward
       filter:
@@ -64,5 +60,6 @@ mappings:
   # range: '[2944530,]' #lots of events
   # range: '[9950369,]' # rewards
   # range: '[8124580,]' # rewards
+  # range: '[10402155,10402156]'
 
 

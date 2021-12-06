@@ -22,7 +22,7 @@ import {
 } from "./StakeChanged";
 import { cachedRewardDestination, cachedController } from "./helpers/Cache";
 import { Staking } from "../types";
-import { allBlockEvents, apiService } from "./helpers/api";
+import { BlockEvent, apiService } from "./helpers/api";
 
 export async function handleRewarded({
   store,

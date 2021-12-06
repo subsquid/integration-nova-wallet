@@ -7,11 +7,11 @@ import {  convertAddressToSubstrate } from "./common"
 axiosRetry(axios, { retries: API_RETRIES, retryDelay: axiosRetry.exponentialDelay});
 let api: ApiPromise | undefined
 
-let blockEventsCache: {[blockNumber:number]: Array<allBlockEvents>} = {}
-let blockExtrinsicsCache: {[blockNumber:number]: Array<allBlockExtrinisics>} = {}
+let blockEventCache: {[blockNumber:number]: Array<BlockEvent>} = {}
+let blockExtrinsicsCache: {[blockNumber:number]: Array<BlockExtrinisic>} = {}
 let accountsCache: any = {}
 
-export interface allBlockEvents {
+export interface BlockEvent {
   section : string;
   method: string;
   id: string;
@@ -22,9 +22,10 @@ export interface allBlockEvents {
   indexInBlock : any;
   blockNumber : any;
   blockTimestamp: any;
+  extrinsicId?: string
 }
 
-export interface allBlockExtrinisics {
+export interface BlockExtrinisic {
   section : string;
   method: string;
   id: string;
@@ -34,10 +35,10 @@ export interface allBlockExtrinisics {
   tip: bigint;
   signature:string;
   hash: string;
-  substrate_events :{
+  substrate_events :[{
     name: string;
     id: string
-  };
+  }];
  
 }
 
@@ -115,20 +116,21 @@ return accountsCache[`${blockNumber}-${method}-${section}`]
 /**
  * API to fetch all block events
  * @param {number} blockNumber 
- * @returns {Array<allBlockEvents>}
+ * @returns {Array<BlockEvent>}
  */
-export const allBlockEvents = async (
+export const BlockEvent = async (
     blockNumber : number
 ) => {
-  if(blockEventsCache[blockNumber]){
-    return blockEventsCache[blockNumber]
+  if(blockEventCache[blockNumber]){
+    return blockEventCache[blockNumber]
   }
   // Clear cache
-  blockEventsCache = {}
+  blockEventCache = {}
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
   substrate_event (where:{blockNumber:{_eq:${blockNumber}}}){
     section
+    extrinsicId
     method
     id
     data
@@ -145,12 +147,12 @@ let data = JSON.stringify({
   variables: {}
 });
 
-blockEventsCache[blockNumber] = await axiosPOSTRequest(data).then(
+blockEventCache[blockNumber] = await axiosPOSTRequest(data).then(
     (result:any) => {
-      const response: Array<allBlockEvents> = result?.data?.substrate_event;
+      const response: Array<BlockEvent> = result?.data?.substrate_event;
       return response
     }); 
-return blockEventsCache[blockNumber]
+return blockEventCache[blockNumber]
 }
 
 /**
@@ -159,7 +161,7 @@ return blockEventsCache[blockNumber]
  */
 export const allBlockExtrinsics = async (
     blockNumber : number
-): Promise<Array<allBlockExtrinisics> | []> => {
+): Promise<Array<BlockExtrinisic> | []> => {
 
   if(blockExtrinsicsCache[blockNumber]){
     return blockExtrinsicsCache[blockNumber]

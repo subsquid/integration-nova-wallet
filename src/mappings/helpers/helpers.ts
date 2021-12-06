@@ -1,5 +1,6 @@
 
 import { DatabaseManager } from '@subsquid/hydra-common'
+import { BlockEvent } from './api'
 export async function getOrCreate<T extends {id: string}>(
     store: DatabaseManager,
     entityConstructor: EntityConstructor<T>,
@@ -36,3 +37,10 @@ export async function getOrCreate<T extends {id: string}>(
   type EntityConstructor<T> = {
     new (...args: any[]): T
   }
+
+  // balances and treasury map fees map for extriniscs
+  export interface mapExtrinisicToFees {[extrinisicId: string]:{
+    balances?: bigint,
+    treasury?: bigint,
+    Withdraw?: bigint
+  }}
