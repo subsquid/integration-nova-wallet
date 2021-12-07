@@ -9,6 +9,7 @@ import {
   DatabaseManager,
   EventContext,
   StoreContext,
+  SubstrateBlock,
   SubstrateEvent,
 } from "@subsquid/hydra-common";
 import {
@@ -173,31 +174,31 @@ export async function handleSlash({
 let validatorsCache: { [blockNumber: number]: [string[], number] } = {};
 let initialValidator: string = "";
 
-async function getValidators(blockNumber: number): Promise<[string[], number]> {
-  if (validatorsCache[blockNumber]) return validatorsCache[blockNumber];
+async function getValidators(block: SubstrateBlock): Promise<[string[], number]> {
+  if (validatorsCache[block.height]) return validatorsCache[block.height];
   // clear cache
   validatorsCache = {};
   initialValidator = "";
 
   const api = await apiService();
+  const apiAt = await api.at(block.hash)
 
-  const currentEra = ((await api.query.staking.currentEra()).unwrap());
-  // recheck
-  const slashDeferDuration = await api.consts.staking.slashDeferDuration;
+  const currentEra = (await apiAt.query.staking.currentEra()).unwrap().toNumber()
+  const slashDeferDuration = await apiAt.consts.staking.slashDeferDuration;
   const slashEra =
     slashDeferDuration == undefined
-      ? currentEra.toNumber()
-      : currentEra.toNumber() - slashDeferDuration.toNumber();
+      ? currentEra
+      : currentEra - slashDeferDuration.toNumber();
   //recheck
   const eraStakersInSlashEra =
-    await api.query.staking.erasStakersClipped.entries(slashEra);
+    await apiAt.query.staking.erasStakersClipped.entries(slashEra);
   const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]) => {
     let [, validatorId] = key.args;
 
     return validatorId.toString();
   });
-  validatorsCache[blockNumber] = [validatorsInSlashEra, slashEra];
-  return validatorsCache[blockNumber];
+  validatorsCache[block.height] = [validatorsInSlashEra, slashEra];
+  return validatorsCache[block.height];
 }
 
 async function handleSlashForAccountTxHistory({
@@ -228,7 +229,7 @@ async function handleSlashForAccountTxHistory({
   element.timestamp = timestampToDate(block);
 
   // Need rechecking
-  const getValidatorData = await getValidators(block.height);
+  const getValidatorData = await getValidators(block);
   const validatorsSet = new Set(await getValidatorData[0]);
   initialValidator = validatorsSet.has(account.toString())
     ? account.toString()
