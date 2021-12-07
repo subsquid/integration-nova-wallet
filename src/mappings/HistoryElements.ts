@@ -224,5 +224,5 @@ function determineTransferCallsArgs(
 
 function extractArgsFromTransfer(call: BlockExtrinisic): [string, bigint] {
   const [destinationAddress, amount] = call.args;
-  return [destinationAddress.toString(), BigInt(amount?.value || amount)];
+  return [destinationAddress.toString(), BigInt(amount?.value || 0)];
 }
