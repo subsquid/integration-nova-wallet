@@ -23,9 +23,10 @@ export async function handleNewEra( {
     extrinsic,
   }: EventContext & StoreContext): Promise<void> {
     const api = await apiService()
-    const currentEra = (await api.query.staking.currentEra.at(block.hash)).unwrap().toNumber()
+    const apiAt = await api.at(block.hash)
+    const currentEra = (await apiAt.query.staking.currentEra()).unwrap().toNumber()
 
-    const exposures = await api.query.staking.erasStakersClipped.entriesAt(block.hash,currentEra)
+    const exposures = await apiAt.query.staking.erasStakersClipped.entries(currentEra)
 
     const eraValidatorInfos = exposures.map(async ([key, exposure]:any) => {
         const [, validatorId] = key.args
