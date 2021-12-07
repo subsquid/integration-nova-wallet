@@ -24,7 +24,8 @@ export async function handleNewEra( {
   }: EventContext & StoreContext): Promise<void> {
     const api = await apiService()
     const apiAt = await api.at(block.hash)
-    const currentEra = (await apiAt.query.staking.currentEra()).unwrap().toNumber()
+    let era = ((await apiAt.query.staking.currentEra()).toJSON())
+    let currentEra = typeof era === 'number' ? era : -1
 
     const exposures = await apiAt.query.staking.erasStakersClipped.entries(currentEra)
 

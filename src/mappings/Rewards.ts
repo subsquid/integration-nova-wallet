@@ -183,15 +183,17 @@ async function getValidators(block: SubstrateBlock): Promise<[string[], number]>
   const api = await apiService();
   const apiAt = await api.at(block.hash)
 
-  const currentEra = (await apiAt.query.staking.currentEra()).unwrap().toNumber()
+  let era = ((await apiAt.query.staking.currentEra()).toJSON())
+  let currentEra = typeof era === 'number' ? era : -1
   const slashDeferDuration = await apiAt.consts.staking.slashDeferDuration;
   const slashEra =
     slashDeferDuration == undefined
       ? currentEra
-      : currentEra - slashDeferDuration.toNumber();
+      : currentEra - (slashDeferDuration && slashDeferDuration.toNumber());
   //recheck
-  const eraStakersInSlashEra =
-    await apiAt.query.staking.erasStakersClipped.entries(slashEra);
+  
+  const eraStakersInSlashEra = apiAt.query.staking.erasStakersClipped 
+  ? await apiAt.query.staking.erasStakersClipped.entries(slashEra) : [];
   const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]) => {
     let [, validatorId] = key.args;
 
