@@ -42,8 +42,12 @@ export async function cachedRewardDestination(
             return await apiAt.query.staking.payee(accountAddress)
         }
 
-        // Recheck this, may need to call from a specific block with at
-        const payees = await apiAt.query.staking.payee.multi(allAccountsInBlock);
+   // Recheck this, Work around since apiAt doesn't seem to support multi
+        let queries:any = []
+        for (let index = 0; index < allAccountsInBlock.length; index++) {
+            queries.push([apiAt.query.staking.payee,allAccountsInBlock[index]])
+        }
+        const payees = (await apiAt.queryMulti(queries))
         const rewardDestinations = payees.map((payee:any) => { return payee as RewardDestination });
         
         let destinationByAddress: {[address: string]: RewardDestination} = {}
@@ -107,8 +111,12 @@ export async function cachedController(
             let accountId = await apiAt.query.staking.bonded(accountAddress)
             return accountId.toString()
         }
-        // Recheck this, may need to call from a specific block with at
-        const bonded = await apiAt.query.staking.bonded.multi(controllerNeedAccounts);
+        // Recheck this, Work around since apiAt doesn't seem to support multi
+        let queries:any = []
+        for (let index = 0; index < controllerNeedAccounts.length; index++) {
+            queries.push([apiAt.query.staking.bonded,controllerNeedAccounts[index]])
+        }
+        const bonded = (await apiAt.queryMulti(queries))
         const controllers = bonded.map(bonded => { return bonded.toString() });
         
         let bondedByAddress: {[address: string]: string} = {}

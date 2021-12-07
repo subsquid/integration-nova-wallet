@@ -18,8 +18,8 @@
     "query-node:start": "node ./lib/generated/server.js"
   },
   "dependencies": {
-    "@polkadot/api": "^6.5.1",
-    "@polkadot/types": "^6.5.1",
+    "@polkadot/api": "^6.11.1",
+    "@polkadot/types": "^6.11.1",
     "@subsquid/hydra-common": "^5.0.0-alpha.13",
     "@subsquid/hydra-processor": "^5.0.0-alpha.13",
     "@subsquid/openreader": "^0.2.1",
