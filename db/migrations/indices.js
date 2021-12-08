@@ -20,12 +20,6 @@ module.exports = class nova1638846580628 {
     }
 
     async down(queryRunner) {
-        await queryRunner.query(`DROP TABLE "error_event"`);
-        await queryRunner.query(`DROP TABLE "accumulated_stake"`);
-        await queryRunner.query(`DROP TABLE "stake_change"`);
-        await queryRunner.query(`DROP TABLE "era_validator_info"`);
-        await queryRunner.query(`DROP TABLE "accumulated_reward"`);
-        await queryRunner.query(`DROP TABLE "account_history"`);
-        await queryRunner.query(`DROP TABLE "transfer"`);
+      
     }
 }
