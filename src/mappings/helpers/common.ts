@@ -6,12 +6,18 @@ import { Vec } from '@polkadot/types';
 import { encodeAddress } from "@polkadot/util-crypto";
 import { BlockEvent, BlockExtrinisic } from './api';
 import { mapExtrinisicToFees } from './helpers';
+import { EXTRINISIC_WHITE_LIST } from '../../constants';
 const batchCalls = ["batch", "batchAll"]
 const transferCalls = ["transfer", "transferKeepAlive"]
 
-// export function distinct<T>(array: Array<T>): Array<T> {
-//     return [...new Set(array)];
-// }
+export function extractWhiteListedExtrinsic(
+  extrinsic: Array<BlockExtrinisic>,
+  whiteList = EXTRINISIC_WHITE_LIST
+  ){
+const newList = extrinsic.filter((value: BlockExtrinisic) => whiteList.has(value.name) || false)
+return newList
+
+}
 
 export function convertAddressToSubstrate(address: string) : string {
     return encodeAddress(address, 42);

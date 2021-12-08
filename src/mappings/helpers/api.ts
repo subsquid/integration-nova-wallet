@@ -35,6 +35,7 @@ export interface BlockExtrinisic {
   tip: bigint;
   signature:string;
   hash: string;
+  name: string;
   substrate_events :[{
     name: string;
     id: string
@@ -175,6 +176,7 @@ const query =`query MyQuery {
     signer
     method
     id
+    name
     args
     hash
     indexInBlock
