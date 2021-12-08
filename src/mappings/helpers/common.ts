@@ -16,8 +16,20 @@ export function extractWhiteListedExtrinsic(
   ){
 const newList = extrinsic.filter((value: BlockExtrinisic) => whiteList.has(value.name) || false)
 return newList
-
 }
+
+export function constructCache<T extends BlockExtrinisic| BlockEvent>(
+  list : Array<T> 
+  ):Map<string,  Array<T>>
+  {
+    let cache: Map<string,  Array<T>> = new Map()
+    list.map((element: T ) => {
+      let array = cache.get(`${element.blockNumber}`) || []
+      array?.push(element)
+      cache.set(`${element.blockNumber}`,array)
+    })
+    return cache
+  }
 
 export function convertAddressToSubstrate(address: string) : string {
     return encodeAddress(address, 42);
