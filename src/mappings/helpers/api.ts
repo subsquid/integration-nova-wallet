@@ -3,9 +3,12 @@ import axios, {AxiosRequestConfig} from "axios"
 import axiosRetry from 'axios-retry';
 import { ApiPromise } from "@polkadot/api"
 import {  constructCache, convertAddressToSubstrate } from "./common"
+import { ApiDecoration } from "@polkadot/api/types";
 
 axiosRetry(axios, { retries: API_RETRIES, retryDelay: axiosRetry.exponentialDelay});
 let api: ApiPromise | undefined
+let apiAtBlock: ApiDecoration<"promise"> | undefined
+let lastBlockHash = '-1'
 
 let blockEventCache: Map<string, Array<BlockEvent>> = new Map()
 let blockExtrinsicsCache: Map <string, Array<BlockExtrinisic>> = new Map()
@@ -44,11 +47,23 @@ export interface BlockExtrinisic {
  
 }
 
-export const apiService =  async () => {
-    if (api) return api;
-    api = await ApiPromise.create({ provider: PROVIDER })
-    // await api.isReady
-    return api
+export const apiService =  async (blockHash: string):Promise <ApiDecoration<"promise">> => {
+  
+    if (blockHash === lastBlockHash){
+      if(!apiAtBlock) {
+        console.error('RPC connection error', lastBlockHash)
+        process.exit(1)
+      }
+      return apiAtBlock
+    }
+    lastBlockHash = blockHash
+    api = api || await ApiPromise.create({ provider: PROVIDER })
+    apiAtBlock = await api?.at(blockHash)
+    if(!apiAtBlock) {
+      console.error('RPC connection error', lastBlockHash)
+      process.exit(1)
+    }
+    return apiAtBlock
 }
 
 export const axiosPOSTRequest = async (
