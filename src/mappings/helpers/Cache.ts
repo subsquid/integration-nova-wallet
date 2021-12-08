@@ -23,8 +23,7 @@ export async function cachedRewardDestination(
     block: SubstrateBlock
     ): Promise<RewardDestination> {
     const blockId = blockNumber(event)
-    const api = await apiService()
-    const apiAt = await api.at(block.hash)
+    const apiAt = await apiService(block.hash)
     let cachedBlock = rewardDestinationByAddress[blockId]
     
     if (cachedBlock !== undefined) {
@@ -82,8 +81,7 @@ export async function cachedController(
     ): Promise<string> {
     const blockId = blockNumber(event)
     let cachedBlock = controllersByStash[blockId]
-    const api = await apiService()
-    const apiAt = await api.at(block.hash)
+    const apiAt = await apiService(block.hash)
     
     if (cachedBlock !== undefined) {
         return cachedBlock[accountAddress]

@@ -180,8 +180,7 @@ async function getValidators(block: SubstrateBlock): Promise<[string[], number]>
   validatorsCache = {};
   initialValidator = "";
 
-  const api = await apiService();
-  const apiAt = await api.at(block.hash)
+  const apiAt = await apiService(block.hash)
 
   let era = ((await apiAt.query.staking.currentEra()).toJSON())
   let currentEra = typeof era === 'number' ? era : -1

@@ -23,8 +23,8 @@ import {
   timestampToDate,
   feeEventsToExtrinisicMap,
   isExtrinisicSuccess,
+  extractWhiteListedExtrinsic,
 } from "./helpers/common";
-import { u64 } from "@polkadot/types";
 import { getOrCreate, get, mapExtrinisicToFees } from "./helpers/helpers";
 import {
   BlockExtrinisic,
@@ -33,11 +33,13 @@ import {
 
 export async function handleHistoryElement({
   store,
-  event,
   block,
-  extrinsic,
 }: ExtrinsicContext & StoreContext): Promise<void> {
-  const allExtrinsic = await allBlockExtrinsics(block.height);
+  const extrinisics = await allBlockExtrinsics(block.height);
+  const allExtrinsic = extractWhiteListedExtrinsic(extrinisics)
+  if(allExtrinsic.length == 0){
+    return
+  }
   const fees = await feeEventsToExtrinisicMap(block.height);
   if (allExtrinsic.length == 0) {
     return;

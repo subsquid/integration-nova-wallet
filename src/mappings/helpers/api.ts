@@ -1,15 +1,18 @@
-import { PROVIDER , INDEXER, API_RETRIES } from "../../constants"
+import { PROVIDER , INDEXER, API_RETRIES, QUERY_CACHE_SIZE } from "../../constants"
 import axios, {AxiosRequestConfig} from "axios"
 import axiosRetry from 'axios-retry';
 import { ApiPromise } from "@polkadot/api"
-import {  convertAddressToSubstrate } from "./common"
+import {  constructCache, convertAddressToSubstrate } from "./common"
+import { ApiDecoration } from "@polkadot/api/types";
 
 axiosRetry(axios, { retries: API_RETRIES, retryDelay: axiosRetry.exponentialDelay});
 let api: ApiPromise | undefined
+let apiAtBlock: ApiDecoration<"promise"> | undefined
+let lastBlockHash = '-1'
 
-let blockEventCache: {[blockNumber:number]: Array<BlockEvent>} = {}
-let blockExtrinsicsCache: {[blockNumber:number]: Array<BlockExtrinisic>} = {}
-let accountsCache: any = {}
+let blockEventCache: Map<string, Array<BlockEvent>> = new Map()
+let blockExtrinsicsCache: Map <string, Array<BlockExtrinisic>> = new Map()
+let accountsCache: Map<string, any> = new Map()
 
 export interface BlockEvent {
   section : string;
@@ -20,7 +23,7 @@ export interface BlockEvent {
   params: any;
   name : string;
   indexInBlock : any;
-  blockNumber : any;
+  blockNumber : string;
   blockTimestamp: any;
   extrinsicId?: string
 }
@@ -35,6 +38,8 @@ export interface BlockExtrinisic {
   tip: bigint;
   signature:string;
   hash: string;
+  name: string;
+  blockNumber : string;
   substrate_events :[{
     name: string;
     id: string
@@ -42,11 +47,23 @@ export interface BlockExtrinisic {
  
 }
 
-export const apiService =  async () => {
-    if (api) return api;
-    api = await ApiPromise.create({ provider: PROVIDER })
-    // await api.isReady
-    return api
+export const apiService =  async (blockHash: string):Promise <ApiDecoration<"promise">> => {
+  
+    if (blockHash === lastBlockHash){
+      if(!apiAtBlock) {
+        console.error('RPC connection error', lastBlockHash)
+        process.exit(1)
+      }
+      return apiAtBlock
+    }
+    lastBlockHash = blockHash
+    api = api || await ApiPromise.create({ provider: PROVIDER })
+    apiAtBlock = await api?.at(blockHash)
+    if(!apiAtBlock) {
+      console.error('RPC connection error', lastBlockHash)
+      process.exit(1)
+    }
+    return apiAtBlock
 }
 
 export const axiosPOSTRequest = async (
@@ -75,60 +92,69 @@ export const axiosPOSTRequest = async (
  * API to fetch all accounts for a specific method in the indexer
  * @param {number} blockNumber 
  * @param {string} method 
- * @param {string} section 
+ * @param {string} section
+* @param {number} query cache size 
  */
 export const allAccounts = async (
     blockNumber : number,
     method: string,
-    section : string
+    section : string,
+    size = QUERY_CACHE_SIZE
 ) => {
-  if(accountsCache[`${blockNumber}-${method}-${section}`]){
-    return accountsCache[`${blockNumber}-${method}-${section}`]
+  let key = `${blockNumber}-${method}-${section}`
+  if(accountsCache.has(key)){
+    return accountsCache.get(key)
   }
   // clear cache
-  accountsCache = {}
+  accountsCache = new Map()
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
-  substrate_event(where: {blockNumber: {_eq: ${blockNumber}}, method: {_eq: ${method}}, section: {_eq: ${section}}}) {
+  substrate_event(where:  {_and: [{blockNumber: {_gte: ${blockNumber}}},{blockNumber: {_lte: ${blockNumber+ size}}},{method: {_eq: ${method}}}, {section: {_eq: ${section}}}]}) {
     id
     method
     section
+    blockNumber
     data
   }
 }`
+
 let data = JSON.stringify({
   query,
   variables: {}
 });
 
-accountsCache[`${blockNumber}-${method}-${section}`] = await axiosPOSTRequest(data).then(
-    (result:any) => result?.data?.substrate_event?.map ( 
+ let accounts:any = await axiosPOSTRequest(data)
+accounts?.data?.substrate_event?.map ( 
         (payload:any) => { 
+        let newKey = `${payload.blockNumber}-${method}-${section}`
          let address = payload?.data?.param0?.value
-         if (typeof address === 'string')
-         return  convertAddressToSubstrate(payload?.data?.param0?.value) 
-        }).filter((entry:any) => entry)
-        )
-
-return accountsCache[`${blockNumber}-${method}-${section}`]
+         if (typeof address === 'string'){
+           let array =  accountsCache.get(newKey) || []
+           array.push(convertAddressToSubstrate(address))
+          accountsCache.set(newKey,array)
+         }
+        })
+return accountsCache.get(key)
 }
 
 /**
  * API to fetch all block events
  * @param {number} blockNumber 
+ * @param {number} query cache size
  * @returns {Array<BlockEvent>}
  */
 export const BlockEvent = async (
-    blockNumber : number
-) => {
-  if(blockEventCache[blockNumber]){
-    return blockEventCache[blockNumber]
+    blockNumber : number,
+    size = QUERY_CACHE_SIZE
+):Promise<Array<BlockEvent> | []> => {
+  if(blockEventCache.has(`${blockNumber}`)){
+    return blockEventCache.get(`${blockNumber}`) || []
   }
   // Clear cache
-  blockEventCache = {}
+  blockEventCache = new Map()
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
-  substrate_event (where:{blockNumber:{_eq:${blockNumber}}}){
+  substrate_event (where:  {_and: [{blockNumber: {_gte: ${blockNumber}}},{blockNumber: {_lte: ${blockNumber+ size}}}]}){
     section
     extrinsicId
     method
@@ -137,6 +163,7 @@ const query =`query MyQuery {
     blockHash
     params
     name
+    blockNumber
     indexInBlock
     blockNumber
     blockTimestamp
@@ -147,39 +174,45 @@ let data = JSON.stringify({
   variables: {}
 });
 
-blockEventCache[blockNumber] = await axiosPOSTRequest(data).then(
+let events = await axiosPOSTRequest(data).then(
     (result:any) => {
       const response: Array<BlockEvent> = result?.data?.substrate_event;
       return response
     }); 
-return blockEventCache[blockNumber]
+    blockEventCache = constructCache<BlockEvent>(events)
+
+    return blockEventCache.get(`${blockNumber}`) || []
 }
 
 /**
  *  API to fetch all block extrinsics with blocknumber
  * @param {number} blockNumber 
+ * @param {number} query cache size
  */
 export const allBlockExtrinsics = async (
-    blockNumber : number
+    blockNumber : number,
+    size = QUERY_CACHE_SIZE
 ): Promise<Array<BlockExtrinisic> | []> => {
 
-  if(blockExtrinsicsCache[blockNumber]){
-    return blockExtrinsicsCache[blockNumber]
+  if(blockExtrinsicsCache.has(`${blockNumber}`)){
+    return blockExtrinsicsCache.get(`${blockNumber}`) || []
   }
   // Clear cache
-  blockExtrinsicsCache = {}
+  blockExtrinsicsCache = new Map()
   // please be cautions when modifying query, extra spaces line endings could cause query not to work
 const query =`query MyQuery {
-  substrate_extrinsic(where:{blockNumber:{_eq:${blockNumber}}}){
+  substrate_extrinsic(where:  {_and: [{blockNumber: {_gte: ${blockNumber}}},{blockNumber: {_lte: ${blockNumber+ size}}}]}){
     section
     signer
     method
     id
+    name
     args
     hash
     indexInBlock
     tip
     signature
+    blockNumber
     hash
     substrate_events {
       name
@@ -193,8 +226,9 @@ let data = JSON.stringify({
   variables: {}
 });
 
-blockExtrinsicsCache[blockNumber] = await axiosPOSTRequest(data).then(
+let extrinsics = await axiosPOSTRequest(data).then(
     (result:any) => result?.data?.substrate_extrinsic)
+  blockExtrinsicsCache = constructCache<BlockExtrinisic>(extrinsics)
 
-return blockExtrinsicsCache[blockNumber]
+return blockExtrinsicsCache.get(`${blockNumber}`) || []
 }
