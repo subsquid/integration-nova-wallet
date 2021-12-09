@@ -1,7 +1,7 @@
 import {EventContext, StoreContext, DatabaseManager} from '@subsquid/hydra-common'
 import {AccumulatedStake, StakeChange} from '../generated/model';
 import { getOrCreate } from './helpers/helpers';
-import { eventId, timestamp} from "./helpers/common";
+import { convertAddress, eventId, timestamp} from "./helpers/common";
 import {Balance} from "@polkadot/types/interfaces";
 import { Staking } from '../types'
 import { cachedRewardDestination } from './helpers/Cache';
@@ -14,7 +14,7 @@ export async function handleBonded({
   }: EventContext & StoreContext): Promise<void>{
     const [stash, amount] = new Staking.BondedEvent(event).params
 
-    let address = stash.toString()
+    let address = convertAddress(stash.toString())
     let amountBalance = amount.toBigInt()
     let accumulatedAmount = await handleAccumulatedStake(address, amountBalance, store)
 
@@ -45,7 +45,7 @@ export async function handleUnbonded({
 }: EventContext & StoreContext): Promise<void>{
   const [stash, amount] = new Staking.UnbondedEvent(event).params
 
-    let address = stash.toString()
+    let address = convertAddress(stash.toString())
     let amountBalance = (amount as Balance).toBigInt() * -1n // need to subtract
     let accumulatedAmount = await handleAccumulatedStake(address, amountBalance, store)
 
@@ -76,7 +76,7 @@ export async function handleSlashForAnalytics({
 }: EventContext & StoreContext): Promise<void> {
   const [validatorOrNominatorAccountId, amount] = new Staking.SlashedEvent(event).params
 
-    let address = validatorOrNominatorAccountId.toString()
+    let address = convertAddress( validatorOrNominatorAccountId.toString())
     let amountBalance = amount.toBigInt() * -1n
     let accumulatedAmount = await handleAccumulatedStake(address, amountBalance, store)
 
@@ -91,7 +91,7 @@ export async function handleSlashForAnalytics({
     element.blockNumber = block.height
     element.eventIdx = event.id
     element.timestamp = timestamp(block)
-    element.address = validatorOrNominatorAccountId.toString()
+    element.address =address
     element.amount = amountBalance
     element.accumulatedAmount = accumulatedAmount
     element.type = "slashed"
@@ -111,7 +111,7 @@ export async function handleRewardRestakeForAnalytics({
     const payee = await cachedRewardDestination(accountAddress, event, block)
     if (payee?.isStaked) {
         let amountBalance = amount.toBigInt()
-        let accumulatedAmount = await handleAccumulatedStake(accountAddress, amountBalance, store)
+        let accumulatedAmount = await handleAccumulatedStake(convertAddress(accountAddress), amountBalance, store)
 
         const element = await getOrCreate(
           store,
@@ -124,7 +124,7 @@ export async function handleRewardRestakeForAnalytics({
         element.blockNumber = block.height
         element.eventIdx = event.id
         element.timestamp = timestamp(block)
-        element.address = accountAddress
+        element.address = convertAddress(accountAddress)
         element.amount = amountBalance
         element.accumulatedAmount = accumulatedAmount
         element.type = "rewarded"
@@ -134,7 +134,7 @@ export async function handleRewardRestakeForAnalytics({
 }
 
 async function handleAccumulatedStake(address: string, amount: bigint, store: DatabaseManager): Promise<bigint> {
-    let accumulatedStake =  await store.find(AccumulatedStake, // recheck
+    let accumulatedStake =  await store.find(AccumulatedStake, 
         {
           where: {id: address}
         });

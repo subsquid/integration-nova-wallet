@@ -13,6 +13,7 @@ import {
   SubstrateEvent,
 } from "@subsquid/hydra-common";
 import {
+  convertAddress,
   eventId,
   timestampToDate,
 } from "./helpers/common";
@@ -72,7 +73,7 @@ async function handleAccountRewardTxHistory({
   extrinsic,
 }: EventContext & StoreContext): Promise<void> {
   const [account, amount] = new Staking.RewardedEvent(event).params;
-  const accountAddress = account.toString();
+  const accountAddress =account.toString();
 
   let element = new AccountHistory({
     id: eventId(event),
@@ -118,7 +119,7 @@ async function handleAccountRewardTxHistory({
     stash = rewardDestination.asAccount.toString();
   }
 
-  element.address = account.toString();
+  element.address = convertAddress(account.toString());
   element.blockNumber = block.height;
   element.extrinsicHash = extrinsic?.hash;
   element.timestamp = timestampToDate(block);
@@ -127,8 +128,8 @@ async function handleAccountRewardTxHistory({
       amount: amount.toBigInt(),
       era: era,
       eventIdx: event.id.toString(),
-      validator: validator,
-      stash: stash,
+      validator: convertAddress(validator),
+      stash: convertAddress(stash),
     }),
   });
 
@@ -223,26 +224,26 @@ async function handleSlashForAccountTxHistory({
   });
 
   const [account, amount] = new Staking.SlashedEvent(event).params;
-
-  element.address = account.toString();
-  element.blockNumber = block.height;
-  element.extrinsicHash = extrinsic?.hash;
-  element.timestamp = timestampToDate(block);
+ let address = account.toString()
+ 
 
   // Need rechecking
   const getValidatorData = await getValidators(block);
   const validatorsSet = new Set(await getValidatorData[0]);
-  initialValidator = validatorsSet.has(account.toString())
-    ? account.toString()
+  initialValidator = validatorsSet.has(address)
+    ? address
     : initialValidator;
-
+    element.address = convertAddress(address);
+    element.blockNumber = block.height;
+    element.extrinsicHash = extrinsic?.hash;
+    element.timestamp = timestampToDate(block);
   element.item = new SlashItem({
     slash: new Reward({
       amount: amount.toBigInt(),
       era: getValidatorData[1],
       eventIdx: event.id.toString(),
-      validator: initialValidator,
-      stash: account.toString(),
+      validator: convertAddress(initialValidator),
+      stash: convertAddress(address),
     }),
   });
 
@@ -257,7 +258,7 @@ async function updateAccumulatedReward(
   // For both reward and slash, the params are parsed the same way
   const [accountId, amount] = new Staking.RewardedEvent(event).params;
 
-  let accountAddress = accountId.toString();
+  let accountAddress = convertAddress(accountId.toString());
 
   let accumulatedReward = await store.get(AccumulatedReward, {
     where: { id: accountAddress },
