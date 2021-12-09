@@ -2,7 +2,7 @@ import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subsquid/hy
 import { encodeAddress } from "@polkadot/util-crypto";
 import { BlockEvent, BlockExtrinisic } from './api';
 import { mapExtrinisicToFees } from './helpers';
-import { ADDRESS_PREFIX, EXTRINISIC_WHITE_LIST } from '../../constants';
+import { ADDRESS_PREFIX, EXTRINISIC_BLACK_LIST } from '../../constants';
 const batchCalls = ["batch", "batchAll"]
 const transferCalls = ["transfer", "transferKeepAlive"]
 
@@ -12,11 +12,11 @@ export function convertAddress(address: string, prefix = ADDRESS_PREFIX){
   return  encodeAddress(address,prefix)
 }
 
-export function extractWhiteListedExtrinsic(
+export function removeBlackListedExtrinsic(
   extrinsic: Array<BlockExtrinisic>,
-  whiteList = EXTRINISIC_WHITE_LIST
+  whiteList = EXTRINISIC_BLACK_LIST
   ){
-const newList = extrinsic.filter((value: BlockExtrinisic) => whiteList.has(value.name) || false)
+const newList = extrinsic.filter((value: BlockExtrinisic) => !whiteList.has(value.name))
 return newList
 }
 

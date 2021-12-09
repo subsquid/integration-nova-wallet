@@ -23,7 +23,7 @@ import {
   timestampToDate,
   feeEventsToExtrinisicMap,
   isExtrinisicSuccess,
-  extractWhiteListedExtrinsic,
+  removeBlackListedExtrinsic,
   convertAddress,
 } from "./helpers/common";
 import { getOrCreate, get, mapExtrinisicToFees } from "./helpers/helpers";
@@ -36,8 +36,8 @@ export async function handleHistoryElement({
   store,
   block,
 }: ExtrinsicContext & StoreContext): Promise<void> {
-  const extrinisics = await allBlockExtrinsics(block.height);
-  const allExtrinsic = extractWhiteListedExtrinsic(extrinisics)
+  const extrinsics = await allBlockExtrinsics(block.height);
+  const allExtrinsic = removeBlackListedExtrinsic(extrinsics)
   if(allExtrinsic.length == 0){
     return
   }
@@ -45,7 +45,7 @@ export async function handleHistoryElement({
   if (allExtrinsic.length == 0) {
     return;
   }
-  // Check all block extrinisics
+  // Check all block extrinsics
   let extrinisicItemPromises = allExtrinsic.map(
     async (extrinisicItem: BlockExtrinisic) => {
       const isSigned = extrinisicItem.signature;
