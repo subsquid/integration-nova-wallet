@@ -24,6 +24,7 @@ import {
   feeEventsToExtrinisicMap,
   isExtrinisicSuccess,
   extractWhiteListedExtrinsic,
+  convertAddress,
 } from "./helpers/common";
 import { getOrCreate, get, mapExtrinisicToFees } from "./helpers/helpers";
 import {
@@ -100,7 +101,7 @@ async function saveFailedTransfer(
       AccountHistory,
       extrinsicId + `-from`
     );
-    elementFrom.address = transfer.from;
+    elementFrom.address = convertAddress(transfer.from);
     elementFrom.blockNumber = blockNumber;
     elementFrom.extrinsicHash = extrinsicHash;
     elementFrom.extrinsicIdx = extrinsicIdx;
@@ -114,7 +115,7 @@ async function saveFailedTransfer(
       AccountHistory,
       extrinsicId + `-to`
     );
-    elementTo.address = transfer.to;
+    elementTo.address = convertAddress(transfer.to);
     elementTo.blockNumber = blockNumber;
     elementTo.extrinsicHash = extrinsicHash;
     elementTo.extrinsicIdx = extrinsicIdx;
@@ -146,7 +147,7 @@ async function saveExtrinsic(
   const element = new AccountHistory({
     id: extrinsicId,
   });
-  element.address = extrinsic.signer.toString();
+  element.address = convertAddress(extrinsic.signer.toString());
   element.blockNumber = blockNumber;
   element.extrinsicHash = extrinsic.hash;
   element.extrinsicIdx = extrinsicId;
@@ -193,8 +194,8 @@ async function findFailedTransferCalls(
     return new Transfer({
       extrinisicIdx: extrinsic.id,
       amount: tuple[1].toString(),
-      from: sender.toString(),
-      to: tuple[0].toString(),
+      from: convertAddress(sender.toString()),
+      to: convertAddress(tuple[0].toString()),
       fee:  calculateFee(extrinsic, fees),
       eventIdx: "-1",
       success: false,
@@ -226,5 +227,7 @@ function determineTransferCallsArgs(
 
 function extractArgsFromTransfer(call: BlockExtrinisic): [string, bigint] {
   const [destinationAddress, amount] = call.args;
-  return [destinationAddress?.value.toString() || '', BigInt(amount?.value || 0)];
+  return [convertAddress(
+    destinationAddress?.value?.id?.toString() || destinationAddress?.value?.toString()) 
+    || '', BigInt(amount?.value || 0)];
 }

@@ -1,14 +1,16 @@
-import { BlockContext, DatabaseManager, EventContext, StoreContext, SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subsquid/hydra-common'
-import {Balance} from "@polkadot/types/interfaces";
-import {CallBase} from "@polkadot/types/types/calls";
-import {AnyTuple} from "@polkadot/types/types/codec";
-import { Vec } from '@polkadot/types';
+import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subsquid/hydra-common'
 import { encodeAddress } from "@polkadot/util-crypto";
 import { BlockEvent, BlockExtrinisic } from './api';
 import { mapExtrinisicToFees } from './helpers';
-import { EXTRINISIC_WHITE_LIST } from '../../constants';
+import { ADDRESS_PREFIX, EXTRINISIC_WHITE_LIST } from '../../constants';
 const batchCalls = ["batch", "batchAll"]
 const transferCalls = ["transfer", "transferKeepAlive"]
+
+
+export function convertAddress(address: string, prefix = ADDRESS_PREFIX){
+  if(!address) return ''
+  return  encodeAddress(address,prefix)
+}
 
 export function extractWhiteListedExtrinsic(
   extrinsic: Array<BlockExtrinisic>,

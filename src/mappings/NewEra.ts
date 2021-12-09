@@ -1,7 +1,7 @@
 import {EventContext, StoreContext} from '@subsquid/hydra-common'
-import {eventId} from "./helpers/common";
+import {convertAddress, eventId} from "./helpers/common";
 import { getOrCreate } from './helpers/helpers';
-import { EraValidatorInfo } from '../generated/model';
+import { EraValidatorInfo, IndividualExposure } from '../generated/model';
 import { apiService } from './helpers/api';
 
 export async function handleStakersElected({
@@ -31,17 +31,17 @@ export async function handleNewEra( {
     const eraValidatorInfos = exposures.map(async ([key, exposure]:any) => {
         const [, validatorId] = key.args
 
-        let validatorIdString = validatorId.toString()
+        let validatorIdString = convertAddress(validatorId.toString())
         const eraValidatorInfo = await getOrCreate(store, EraValidatorInfo,eventId(event)+validatorIdString)
         eraValidatorInfo.era = currentEra
         eraValidatorInfo.address = validatorIdString
         eraValidatorInfo.total = exposure.total.toBigInt()
         eraValidatorInfo.own = exposure.own.toBigInt()
         eraValidatorInfo.others = exposure.others.map((other:any) => {
-            return {
-                who: other.who.toString(),
+            return new IndividualExposure({
+                who: convertAddress(other.who.toString()),
                 value: other.value.toString()
-            }
+            })
         })
         return await store.save(eraValidatorInfo)
     })

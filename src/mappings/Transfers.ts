@@ -1,5 +1,3 @@
-import {  AccountHistory, Transfer, TransferItem } from '../generated/model';
-import { Balances } from '../types'
 import {
   DatabaseManager,
   EventContext,
@@ -8,15 +6,20 @@ import {
   SubstrateEvent,
   SubstrateExtrinsic,
 } from "@subsquid/hydra-common";
+
+import {  AccountHistory, Transfer, TransferItem } from '../generated/model';
+import { Balances } from '../types'
 import {
   blockNumber,
   calculateFee,
+  convertAddress,
   eventId,
   feeEventsToExtrinisicMap,
   timestampToDate,
 } from "./helpers/common";
 import { getOrCreate } from "./helpers/helpers";
 import { BlockExtrinisic } from './helpers/api';
+import { ADDRESS_PREFIX } from "../constants";
 
 export async function handleTransfer({
   store,
@@ -31,7 +34,7 @@ export async function handleTransfer({
     AccountHistory,
     eventId(event) + `-from`
   );
-  elementFrom.address = from.toString();
+  elementFrom.address = convertAddress(from.toString());
   await populateTransfer(elementFrom, event, block, extrinsic, store);
 
   const elementTo = await getOrCreate(
@@ -39,7 +42,7 @@ export async function handleTransfer({
     AccountHistory,
     eventId(event) + `-to`
   );
-  elementTo.address = to.toString();
+  elementTo.address = convertAddress(to.toString());
   await populateTransfer(elementTo, event, block, extrinsic, store);
 }
 
@@ -79,8 +82,8 @@ async function populateTransfer(
     return
   }
   transfer.amount = value.toString();
-  transfer.from = from.toString();
-  transfer.to = to.toString();
+  transfer.from = convertAddress(from.toString());
+  transfer.to =  convertAddress(to.toString())
   transfer.fee = calculateFee(extrinsic as BlockExtrinisic,fees);
   transfer.extrinisicIdx = extrinsic?.id;
   transfer.eventIdx = event.id;
