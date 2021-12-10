@@ -30,4 +30,7 @@ export class Transfer {
 
   @Column_("bool", {nullable: false})
   success!: boolean
+
+  @Column_("bool", {nullable: true})
+  isTransferKeepAlive!: boolean | undefined | null
 }

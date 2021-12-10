@@ -28,8 +28,6 @@ mappings:
   eventHandlers:
     - event: balances.Transfer
       handler: handleTransfer
-    - event: balances.transfer_keep_alive
-      handler: handleTransfer
     - event: staking.Reward
       handler: handleReward
       filter:

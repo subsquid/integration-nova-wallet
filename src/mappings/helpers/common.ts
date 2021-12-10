@@ -59,16 +59,16 @@ export function callFromProxy(proxyCall:BlockExtrinisic) {
 }
 
 export function eventId(event: SubstrateEvent): string {
-    return `${blockNumber(event)}-${event.id}`
+    return eventIdFromBlockAndIdx(event.blockNumber, event.id)
 }
 
-export function eventIdFromBlockAndIdx(blockNumber: string, eventIdx: string) {
+export function eventIdFromBlockAndIdx(blockNumber: number, eventIdx: string) {
     return `${blockNumber}-${eventIdx}`
 }
 
 // export function extrinsicIdx(event: SubstrateEvent): string {
 //     let idx: string = event.extrinsic ? event.extrinsic.idx.toString() : event.idx.toString()
-//     return idx
+//     return idx 
 // }
 
 export function blockNumber(event: SubstrateEvent): number {

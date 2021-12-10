@@ -8,6 +8,7 @@ type Transfer @entity{
   eventIdx: String!
   extrinisicIdx: String!
   success: Boolean!
+  isTransferKeepAlive: Boolean
 }
 
 type AccountHistory @entity {
