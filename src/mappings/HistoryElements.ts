@@ -56,7 +56,7 @@ export async function handleHistoryElement({
           block,
           store
         );
-        if (failedTransfer != null) {
+        if (failedTransfer != null  ) {
           await saveFailedTransfer(
             failedTransfer,
             extrinisicItem,
@@ -137,6 +137,9 @@ async function saveExtrinsic(
 ): Promise<void> {
   let blockNumber = block.height;
   let extrinsicIdx = extrinsic.id;
+ 
+  if(extrinsic.name === 'balances.transferKeepAlive' || extrinsic.name === 'balances.transfer')
+   return; // Already processed in transfers
   let extrinsicId = extrinsicIdFromBlockAndIdx(blockNumber, extrinsicIdx);
   let checkIfPresent = await get(store, AccountHistory, extrinsicId);
   if (checkIfPresent?.id) {
