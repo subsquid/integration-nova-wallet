@@ -89,6 +89,7 @@ async function populateTransfer(
   transfer.eventIdx = event.id;
   transfer.success = true;
   transfer.id = event.id
+  transfer.isTransferKeepAlive = extrinsic.method === 'transferKeepAlive'
   await store.save(transfer);
 
   element.item = new TransferItem({
