@@ -1,6 +1,6 @@
 import { SubstrateBlock, SubstrateEvent, SubstrateExtrinsic } from '@subsquid/hydra-common'
 import { encodeAddress } from "@polkadot/util-crypto";
-import { BlockEvent, BlockExtrinisic } from './api';
+import { BlockEvent,allBlockEvents, BlockExtrinisic } from './api';
 import { mapExtrinisicToFees } from './helpers';
 import { ADDRESS_PREFIX, EXTRINISIC_BLACK_LIST } from '../../constants';
 const batchCalls = ["batch", "batchAll"]
@@ -58,8 +58,8 @@ export function callFromProxy(proxyCall:BlockExtrinisic) {
     return proxyCall.args[2]
 }
 
-export function eventId(event: SubstrateEvent): string {
-    return eventIdFromBlockAndIdx(event.blockNumber, event.id)
+export function eventId(event: SubstrateEvent | BlockEvent): string {
+    return eventIdFromBlockAndIdx(parseInt(`${event.blockNumber}`), event.id)
 }
 
 export function eventIdFromBlockAndIdx(blockNumber: number, eventIdx: string) {
@@ -103,7 +103,7 @@ export async function feeEventsToExtrinisicMap(
   }
   blockFeesCache = {};
   let extrinisicMap: mapExtrinisicToFees = {};
-  const events = await BlockEvent(blockNumber);
+  const events = await allBlockEvents(blockNumber);
   events.map((entity: BlockEvent) => {
     let extrinsicId = entity.extrinsicId;
     if(!extrinsicId){
@@ -163,4 +163,33 @@ export function isExtrinisicSuccess( extrinsic: BlockExtrinisic): boolean {
     return element.name === "utility.BatchInterrupted" || 
     element.name === "system.ExtrinsicFailed"
   })
+}
+
+
+export function determineTransferCallsArgs(
+  extrinsic: BlockExtrinisic
+): [string, bigint][] {
+  if (isTransfer(extrinsic)) {
+    return [extractArgsFromTransfer(extrinsic)];
+  } else if (isBatch(extrinsic)) {
+    return callsFromBatch(extrinsic)
+      .map((call: any) => {
+        return determineTransferCallsArgs(call).map((value, index, array) => {
+          return value;
+        });
+      })
+      .flat();
+  } else if (isProxy(extrinsic)) {
+    let proxyCall = callFromProxy(extrinsic);
+    return determineTransferCallsArgs(proxyCall);
+  } else {
+    return [];
+  }
+}
+
+function extractArgsFromTransfer(call: BlockExtrinisic): [string, bigint] {
+  const [destinationAddress, amount] = call.args;
+  return [convertAddress(
+    destinationAddress?.value?.id?.toString() || destinationAddress?.value?.toString()) 
+    || '', BigInt(amount?.value || 0)];
 }

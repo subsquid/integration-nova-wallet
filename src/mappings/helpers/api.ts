@@ -2,7 +2,7 @@ import { PROVIDER , INDEXER, API_RETRIES, QUERY_CACHE_SIZE } from "../../constan
 import axios, {AxiosRequestConfig} from "axios"
 import axiosRetry from 'axios-retry';
 import { ApiPromise } from "@polkadot/api"
-import {  constructCache, convertAddressToSubstrate } from "./common"
+import {  constructCache, convertAddress, convertAddressToSubstrate } from "./common"
 import { ApiDecoration } from "@polkadot/api/types";
 
 axiosRetry(axios, { retries: API_RETRIES, retryDelay: axiosRetry.exponentialDelay});
@@ -129,12 +129,12 @@ accounts?.data?.substrate_event?.map (
         let newKey = `${payload.blockNumber}-${method}-${section}`
          let address = payload?.data?.param0?.value
          if (typeof address === 'string'){
-           let array =  accountsCache.get(newKey) || []
-           array.push(convertAddressToSubstrate(address))
+           let array =  accountsCache.get(newKey) || new Set()
+           array.add(convertAddressToSubstrate(address))
           accountsCache.set(newKey,array)
          }
         })
-return accountsCache.get(key)
+return Array.from(accountsCache.get(key) || [])
 }
 
 /**
@@ -143,10 +143,10 @@ return accountsCache.get(key)
  * @param {number} query cache size
  * @returns {Array<BlockEvent>}
  */
-export const BlockEvent = async (
+export const allBlockEvents = async (
     blockNumber : number,
     size = QUERY_CACHE_SIZE
-):Promise<Array<BlockEvent> | []> => {
+):Promise<Array<BlockEvent>>  => {
   if(blockEventCache.has(`${blockNumber}`)){
     return blockEventCache.get(`${blockNumber}`) || []
   }

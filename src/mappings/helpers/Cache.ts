@@ -1,5 +1,5 @@
 import {  SubstrateEvent,SubstrateBlock } from '@subsquid/hydra-common'
-import {blockNumber} from "./common";
+import {blockNumber, convertAddress} from "./common";
 import {AccountId} from "@polkadot/types/interfaces";
 import {RewardDestination} from "@polkadot/types/interfaces/staking";
 import { apiService , allAccounts} from '../helpers/api';
@@ -17,14 +17,15 @@ let controllersByStash: {[blockId: string]: {[address: string]: string}} = {}
  * @param event 
  * @param block
  */
-export async function cachedRewardDestination(
+export async function  cachedRewardDestination(
     accountAddress: string,
     event: SubstrateEvent,
     block: SubstrateBlock
     ): Promise<RewardDestination> {
     const blockId = blockNumber(event)
     const apiAt = await apiService(block.hash)
-    let cachedBlock = rewardDestinationByAddress[blockId]
+    let key = `${blockNumber}-${event?.method}-${event?.section}`
+    let cachedBlock = rewardDestinationByAddress[key]
     
     if (cachedBlock !== undefined) {
         return cachedBlock[accountAddress]
@@ -37,7 +38,7 @@ export async function cachedRewardDestination(
 
         // looks like accountAddress not related to events so just try to query payee directly
         if (allAccountsInBlock?.length === 0) {
-            rewardDestinationByAddress[blockId] = {}
+            rewardDestinationByAddress[key] = {}
             return await apiAt.query.staking.payee(accountAddress)
         }
 
@@ -59,11 +60,11 @@ export async function cachedRewardDestination(
             return payee
         }
         allAccountsInBlock.forEach((account:string, index:number) => { 
-            let accountAddress = account.toString()
+            let address = account.toString()
             let rewardDestination = rewardDestinations[index]
-            destinationByAddress[accountAddress] = rewardDestination
+            destinationByAddress[address] = rewardDestination
         })
-        rewardDestinationByAddress[blockId] = destinationByAddress
+        rewardDestinationByAddress[key] = destinationByAddress
         return destinationByAddress[accountAddress]
     }
 }
@@ -79,8 +80,8 @@ export async function cachedController(
     event: SubstrateEvent,
     block :SubstrateBlock
     ): Promise<string> {
-    const blockId = blockNumber(event)
-    let cachedBlock = controllersByStash[blockId]
+    let key = `${blockNumber}-${event?.method}-${event?.section}`
+    let cachedBlock = controllersByStash[key]
     const apiAt = await apiService(block.hash)
     
     if (cachedBlock !== undefined) {
@@ -96,8 +97,12 @@ export async function cachedController(
         let controllerNeedAccounts: AccountId[] = []
 
         for (let accountId of allAccountsInBlock) {
-            const rewardDestination = await cachedRewardDestination(accountId.toString(), event, block)
-
+            let rewardDestination = await cachedRewardDestination(accountId.toString(), event, block)
+            if(!rewardDestination){
+                console.log('destination not found', rewardDestination)
+                const apiAt = await apiService(block.hash)
+                rewardDestination =  await apiAt.query.staking.payee(accountId.toString()) as RewardDestination
+            }
             if (rewardDestination.isController) {
                 controllerNeedAccounts.push(accountId as AccountId)
             }
@@ -105,7 +110,7 @@ export async function cachedController(
 
         // looks like accountAddress not related to events so just try to query controller directly
         if (controllerNeedAccounts?.length === 0) {
-            controllersByStash[blockId] = {}
+            controllersByStash[key] = {}
             let accountId = await apiAt.query.staking.bonded(accountAddress)
             return accountId.toString()
         }
@@ -124,14 +129,14 @@ export async function cachedController(
             const controller = await apiAt.query.staking.bonded(accountAddress)
             let controllerAddress = controller.toString()
             bondedByAddress[accountAddress] = controllerAddress
-            controllersByStash[blockId] = bondedByAddress
+            controllersByStash[key] = bondedByAddress
             return controllerAddress
         }
         controllerNeedAccounts.forEach((account, index) => { 
             let accountAddress = account.toString()
             bondedByAddress[accountAddress] = controllers[index]
         })
-        controllersByStash[blockId] = bondedByAddress
+        controllersByStash[key] = bondedByAddress
         return bondedByAddress[accountAddress]
     }
 }
