@@ -305,7 +305,7 @@ async function handleSlashForTxHistory({
     const validatorsInSlashEra = eraStakersInSlashEra.map(([key, exposure]) => {
         let [, validatorId] = key.args
 
-        return convertAddress(validatorId.toString())
+        return convertAddressToSubstrate(validatorId.toString())
     })
     const validatorsSet = new Set(validatorsInSlashEra)
 
@@ -348,12 +348,12 @@ async function buildRewardEvents<A>(
     produceReward: (currentAccumulator: A, eventIdx: string, stash: string, amount: string) => any
 ) {
     const events = await allBlockEvents(block.height)
+    events.sort((element1, element2) => element1.id.localeCompare(element2.id))
     const [, savingPromises] = events.reduce<[A, Promise<void>[]]>(
         (accumulator, eventRecord, eventIndex) => {
             let [innerAccumulator, currentPromises] = accumulator
 
             if (!(eventRecord.method == eventMethod && eventRecord.section == eventSection)) return accumulator
-
             const [account, amount] = new Staking.RewardedEvent(eventRecord as unknown as SubstrateEvent).params;
 
             const newAccumulator = produceNewAccumulator(innerAccumulator, convertAddressToSubstrate(account.toString()))
