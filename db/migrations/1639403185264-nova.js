@@ -1,7 +1,7 @@
 const { MigrationInterface, QueryRunner } = require("typeorm");
 
-module.exports = class nova1639144264908 {
-    name = 'nova1639144264908'
+module.exports = class nova1639403185264 {
+    name = 'nova1639403185264'
 
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "transfer" ("id" character varying NOT NULL, "amount" text NOT NULL, "to" text NOT NULL, "from" text NOT NULL, "fee" numeric NOT NULL, "event_idx" text NOT NULL, "extrinisic_idx" text NOT NULL, "success" boolean NOT NULL, "is_transfer_keep_alive" boolean, CONSTRAINT "PK_fd9ddbdd49a17afcbe014401295" PRIMARY KEY ("id"))`);
