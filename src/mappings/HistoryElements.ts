@@ -2,7 +2,6 @@ import {
   DatabaseManager,
   ExtrinsicContext,
   StoreContext,
-  SubstrateExtrinsic,
   SubstrateBlock,
 } from "@subsquid/hydra-common";
 import {
@@ -13,18 +12,14 @@ import {
   TransferItem,
 } from "../generated/model";
 import {
-  callFromProxy,
-  callsFromBatch,
   calculateFee,
   extrinsicIdFromBlockAndIdx,
-  isBatch,
-  isProxy,
-  isTransfer,
   timestampToDate,
   feeEventsToExtrinisicMap,
   isExtrinisicSuccess,
   removeBlackListedExtrinsic,
   convertAddress,
+  determineTransferCallsArgs,
 } from "./helpers/common";
 import { getOrCreate, get, mapExtrinisicToFees } from "./helpers/helpers";
 import {
@@ -207,30 +202,3 @@ async function findFailedTransferCalls(
   });
 }
 
-function determineTransferCallsArgs(
-  extrinsic: BlockExtrinisic
-): [string, bigint][] {
-  if (isTransfer(extrinsic)) {
-    return [extractArgsFromTransfer(extrinsic)];
-  } else if (isBatch(extrinsic)) {
-    return callsFromBatch(extrinsic)
-      .map((call: any) => {
-        return determineTransferCallsArgs(call).map((value, index, array) => {
-          return value;
-        });
-      })
-      .flat();
-  } else if (isProxy(extrinsic)) {
-    let proxyCall = callFromProxy(extrinsic);
-    return determineTransferCallsArgs(proxyCall);
-  } else {
-    return [];
-  }
-}
-
-function extractArgsFromTransfer(call: BlockExtrinisic): [string, bigint] {
-  const [destinationAddress, amount] = call.args;
-  return [convertAddress(
-    destinationAddress?.value?.id?.toString() || destinationAddress?.value?.toString()) 
-    || '', BigInt(amount?.value || 0)];
-}

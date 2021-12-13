@@ -1,7 +1,7 @@
 import {EventContext, StoreContext, DatabaseManager} from '@subsquid/hydra-common'
 import {AccumulatedStake, StakeChange} from '../generated/model';
 import { getOrCreate } from './helpers/helpers';
-import { convertAddress, eventId, timestamp} from "./helpers/common";
+import { convertAddress, convertAddressToSubstrate, eventId, timestamp} from "./helpers/common";
 import {Balance} from "@polkadot/types/interfaces";
 import { Staking } from '../types'
 import { cachedRewardDestination } from './helpers/Cache';
@@ -108,7 +108,7 @@ export async function handleRewardRestakeForAnalytics({
     const [accountId, amount] = new Staking.RewardedEvent(event).params
     let accountAddress= accountId.toString()
 
-    const payee = await cachedRewardDestination(accountAddress, event, block)
+    const payee = await cachedRewardDestination(convertAddressToSubstrate(accountAddress), event, block)
     if (payee?.isStaked) {
         let amountBalance = amount.toBigInt()
         let accumulatedAmount = await handleAccumulatedStake(convertAddress(accountAddress), amountBalance, store)

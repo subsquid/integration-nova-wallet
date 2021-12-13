@@ -1,6 +1,5 @@
 
 import { DatabaseManager } from '@subsquid/hydra-common'
-import { BlockEvent } from './api'
 export async function getOrCreate<T extends {id: string}>(
     store: DatabaseManager,
     entityConstructor: EntityConstructor<T>,
