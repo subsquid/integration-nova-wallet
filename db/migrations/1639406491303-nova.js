@@ -12,18 +12,18 @@ module.exports = class nova1639406491303 {
         await queryRunner.query(`CREATE TABLE "accumulated_stake" ("id" character varying NOT NULL, "amount" numeric NOT NULL, CONSTRAINT "PK_b8067048d2065bcf1c7dd1a6ae0" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "error_event" ("id" character varying NOT NULL, "description" text NOT NULL, CONSTRAINT "PK_c2e5dc904a1e06d26e1538544ed" PRIMARY KEY ("id"))`);
         
-        await queryRunner.query(`CREATE INDEX transfer_from on transfer ("from")`);
-        await queryRunner.query(`CREATE INDEX transfer_to on transfer ("to")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS transfer_from on transfer ("from")`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS transfer_to on transfer ("to")`);
 
-        await queryRunner.query(`CREATE INDEX account_history_block_number on account_history (block_number)`);
-        await queryRunner.query(`CREATE INDEX account_history_address on account_history (address)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS account_history_block_number on account_history (block_number)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS account_history_address on account_history (address)`);
 
-        await queryRunner.query(`CREATE INDEX era_validator_era on era_validator_info (era)`);
-        await queryRunner.query(`CREATE INDEX era_validator_info_address on era_validator_info (address)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS era_validator_era on era_validator_info (era)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS era_validator_info_address on era_validator_info (address)`);
 
 
-        await queryRunner.query(`CREATE INDEX stake_change_address on stake_change (address)`);
-        await queryRunner.query(`CREATE INDEX stake_change_block_number on stake_change (block_number)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS stake_change_address on stake_change (address)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS stake_change_block_number on stake_change (block_number)`);
     }
 
     async down(queryRunner) {
