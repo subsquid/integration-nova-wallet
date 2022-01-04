@@ -9,7 +9,11 @@ const transferCalls = ["transfer", "transferKeepAlive"]
 
 export function convertAddress(address: string, prefix = ADDRESS_PREFIX){
   if(!address) return ''
-  return  encodeAddress(address,prefix)
+  try{
+   return encodeAddress(address,prefix)
+  }catch(err){
+    return ""
+  };
 }
 
 export function removeBlackListedExtrinsic(
@@ -190,6 +194,6 @@ export function determineTransferCallsArgs(
 function extractArgsFromTransfer(call: BlockExtrinisic): [string, bigint] {
   const [destinationAddress, amount] = call.args;
   return [convertAddress(
-    destinationAddress?.value?.id?.toString() || destinationAddress?.value?.toString()) 
+    destinationAddress?.value?.id?.toString() || destinationAddress?.value?.toString()  ) 
     || '', BigInt(amount?.value || 0)];
 }
