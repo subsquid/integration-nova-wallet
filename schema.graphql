@@ -1,24 +1,3 @@
-# enum BalanceEventType {
-#   Endowed
-#   DustLost
-#   Transfer
-#   BalanceSet
-#   Reserved
-#   Unreserved
-#   ReserveRepatriated
-#   Deposit
-#   Withdraw
-#   Slashed
-# }
-
-# enum StakingEventType {
-#   Rewarded
-#   Slashed
-#   Bonded
-#   Unbonded
-#   Withdrawn
-# }
-
 interface EventBase {
   id: ID!
   date: DateTime!
