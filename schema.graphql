@@ -1,98 +1,99 @@
-# Nova Schema
+# enum BalanceEventType {
+#   Endowed
+#   DustLost
+#   Transfer
+#   BalanceSet
+#   Reserved
+#   Unreserved
+#   ReserveRepatriated
+#   Deposit
+#   Withdraw
+#   Slashed
+# }
 
-type Transfer @entity{
-  amount: String!
-  to: String!
-  from: String!
-  fee: BigInt!
-  eventIdx: String!
-  extrinisicIdx: String!
-  success: Boolean!
-  isTransferKeepAlive: Boolean
-}
+# enum StakingEventType {
+#   Rewarded
+#   Slashed
+#   Bonded
+#   Unbonded
+#   Withdrawn
+# }
 
-type AccountHistory @entity {
+interface EventBase {
   id: ID!
-  address: String!
-  blockNumber: Int!
-  extrinsicIdx: String
-  extrinsicHash: String
-  timestamp: DateTime!
-  item: AccountHistoryItem!
+  date: DateTime!
+  blockHash: String!
+  blockNumber: BigInt!
+  extrinisicHash: String
+  chainName: String!
+  event: String!
 }
 
-union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem | SlashItem
-
-type Reward {
-  eventIdx: String!
-  amount: BigInt!
-  era: Int
-  stash: String
-  validator: String
-}
-
-type Extrinsic {
-  hash: String!
-  module: String!
-  call: String!
-  fee: BigInt!
-  success: Boolean!
-}
-
-type TransferItem {
-  transfer: Transfer!
-}
-
-type RewardItem {
-  reward: Reward!
-}
-
-type ExtrinsicItem {
-  extrinsic: Extrinsic!
-}
-
-type SlashItem {
-  slash: Reward!
-}
-
-type AccumulatedReward @entity {
-  id: ID! #address
-  amount: BigInt!
-}
-
-type EraValidatorInfo @entity {
+type BalanceEvent implements EventBase @entity {
   id: ID!
-  address: String! 
-  era: Int! 
-  total: BigInt!
-  own: BigInt!
-  others: [IndividualExposure]!
+  date: DateTime!
+  blockHash: String!
+  blockNumber: BigInt!
+  extrinisicHash: String
+  event: String!
+  from: String @index
+  to: String @index
+  account: String @index
+  amount: BigInt
+  balanceStatus: String
+  free: BigInt
+  reserved: BigInt
+  chainName: String! @index
 }
 
-type IndividualExposure {
-  who: String!
-  value: String!
-}
+# type SetBalanceData {
+#   who: ID!
+#   free: BigInt!
+#   reserved: BigInt!
+# }
 
+# type MainBalanceData {
+#   account: ID!
+#   amount: BigInt!
+# }
 
-type StakeChange @entity {
+type StakingEvent implements EventBase @entity {
   id: ID!
-  blockNumber: Int!
-  extrinsicHash: String
-  eventIdx: String!
-  timestamp: BigInt! 
-  address: String! 
-  amount: BigInt!
-  accumulatedAmount: BigInt!
-  type: String!
-}
-
-type AccumulatedStake @entity {
-  id: ID!
+  date: DateTime!
+  blockHash: String!
+  blockNumber: BigInt!
+  extrinisicHash: String
+  event: String!
+  chainName: String! @index
+  account: String! @index
   amount: BigInt!
 }
 
-type ErrorEvent @entity {
+type Crowdloan @entity {
   id: ID!
-  description: String!
+  cap: BigInt
+  firstPeriod: BigInt
+  lastPeriod: BigInt
+  end: BigInt
+  contributors: [String]
+  raised: BigInt
+  parachain: Parachain
+}
+
+type CrowdloanEvent implements EventBase @entity {
+  id: ID!
+  date: DateTime!
+  blockHash: String!
+  blockNumber: BigInt!
+  extrinisicHash: String
+  event: String!
+  chainName: String!
+  crowdloan: Crowdloan!
+  amount: BigInt!
+}
+
+type Parachain @entity {
+  id: ID!
+  name: String
+  crowdloans: [Crowdloan]! @derivedFrom(field: "parachain")
 }
