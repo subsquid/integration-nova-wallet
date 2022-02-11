@@ -1,98 +1,80 @@
-# Nova Schema
-
-type Transfer @entity{
-  amount: String!
-  to: String!
-  from: String!
-  fee: BigInt!
-  eventIdx: String!
-  extrinisicIdx: String!
-  success: Boolean!
-  isTransferKeepAlive: Boolean
-}
-
-type AccountHistory @entity {
+type Parachain @entity {
   id: ID!
-  address: String!
-  blockNumber: Int!
-  extrinsicIdx: String
-  extrinsicHash: String
-  timestamp: DateTime!
-  item: AccountHistoryItem!
+  name: String
+  crowdloans: [Crowdloan]! @derivedFrom(field: "parachain")
 }
 
-union AccountHistoryItem = RewardItem | ExtrinsicItem | TransferItem | SlashItem
+enum CrowdloanStatus {
+  Created
+  Won
+  Dissolved
+}
 
-type Reward {
-  eventIdx: String!
+type Contributor {
+  id: ID!
   amount: BigInt!
+}
+
+type Crowdloan @entity {
+  id: ID!
+  cap: BigInt!
+  firstPeriod: BigInt!
+  lastPeriod: BigInt!
+  end: BigInt!
+  contributors: [Contributor!]
+  raised: BigInt!
+  parachain: Parachain!
+  chainName: String! @index
+  blockNumber: BigInt
+  status: CrowdloanStatus
+}
+
+interface ItemBase {
+  date: DateTime
+  blockNumber: BigInt
+  eventId: String
+  extrinsicId: String
+  extrinsicHash: String
+  chainName: String 
+}
+
+type Contribution implements ItemBase @entity {
+  eventId: String
+  extrinsicId: String
+  date: DateTime
+  blockNumber: BigInt
+  extrinsicHash: String
+  chainName: String! @index
+  crowdloan: Crowdloan
+  success: Boolean
+  account: String @index
+  amount: BigInt
+}
+
+type Transfer implements ItemBase @entity {
+  eventId: String
+  extrinsicId: String
+  blockNumber: BigInt
+  extrinsicHash: String
+  to: String @index
+  from: String @index
+  amount: BigInt
+  success: Boolean
+  name: String
+  date: DateTime
+  chainName: String @index
+}
+
+type Reward implements ItemBase @entity  {
+  eventId: String
+  extrinsicId: String
+  date: DateTime
+  blockNumber: BigInt
+  extrinsicHash: String
+  chainName: String @index
+  account: String @index
+  amount: BigInt
+  name: String
   era: Int
-  stash: String
   validator: String
-}
-
-type Extrinsic {
-  hash: String!
-  module: String!
-  call: String!
-  fee: BigInt!
-  success: Boolean!
-}
-
-type TransferItem {
-  transfer: Transfer!
-}
-
-type RewardItem {
-  reward: Reward!
-}
-
-type ExtrinsicItem {
-  extrinsic: Extrinsic!
-}
-
-type SlashItem {
-  slash: Reward!
-}
-
-type AccumulatedReward @entity {
-  id: ID! #address
-  amount: BigInt!
-}
-
-type EraValidatorInfo @entity {
-  id: ID!
-  address: String! 
-  era: Int! 
-  total: BigInt!
-  own: BigInt!
-  others: [IndividualExposure]!
-}
-
-type IndividualExposure {
-  who: String!
-  value: String!
-}
-
-
-type StakeChange @entity {
-  id: ID!
-  blockNumber: Int!
-  extrinsicHash: String
-  eventIdx: String!
-  timestamp: BigInt! 
-  address: String! 
-  amount: BigInt!
-  accumulatedAmount: BigInt!
-  type: String!
-}
-
-type AccumulatedStake @entity {
-  id: ID!
-  amount: BigInt!
-}
-
-type ErrorEvent @entity {
-  id: ID!
-  description: String!
 }
